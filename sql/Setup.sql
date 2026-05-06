@@ -1,0 +1,8 @@
+-- Setup.sql (placeholder)
+-- Mục tiêu: 1 script chạy trên SQL Server mới hoàn toàn.
+-- Lưu ý: File này hiện chỉ là skeleton theo yêu cầu “chưa viết SQL”.
+-- TODO (Châu):
+-- - CREATE DATABASE <Tên DB chính thức>
+-- - CREATE TABLE + CONSTRAINT theo Master_Plan.md
+-- - CREATE PROCEDURE: sp_TaoLuotKham, sp_HoanTatKham
+-- - INSERT dữ liệu demo

@@ -1,0 +1,31 @@
+# Visual Studio
+.vs/
+**/bin/
+**/obj/
+
+# User-specific
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build artifacts
+*.pdb
+*.cache
+
+# SQL Server
+*.mdf
+*.ldf
+
+# Logs
+*.log
+
+# OS / misc
+Thumbs.db
+Desktop.ini
+
+# SQL Server localdb backups
+*.bak
+
+# Optional: export artifacts
+design/**/node_modules/

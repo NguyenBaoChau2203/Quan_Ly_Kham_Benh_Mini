@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#f8f9ff",
+                    "tertiary-fixed": "#ffdbc8",
+                    "on-primary-container": "#a4caff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed-variant": "#004881",
+                    "on-error": "#ffffff",
+                    "on-surface": "#191c20",
+                    "inverse-on-surface": "#eff0f6",
+                    "inverse-primary": "#a2c9ff",
+                    "on-error-container": "#93000a",
+                    "primary-fixed-dim": "#a2c9ff",
+                    "surface": "#f8f9ff",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#642d00",
+                    "primary-container": "#005596",
+                    "tertiary-fixed-dim": "#ffb68a",
+                    "secondary-fixed": "#d3e4fe",
+                    "surface-container-low": "#f2f3f9",
+                    "on-secondary-container": "#54647a",
+                    "tertiary-container": "#873f01",
+                    "primary": "#003e6f",
+                    "secondary-container": "#d0e1fb",
+                    "inverse-surface": "#2e3035",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "on-tertiary-container": "#ffb88c",
+                    "surface-dim": "#d9dae0",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#1b60a2",
+                    "primary-fixed": "#d3e4ff",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#001c38",
+                    "surface-container-highest": "#e1e2e8",
+                    "on-secondary-fixed": "#0b1c30",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#c1c7d2",
+                    "surface-variant": "#e1e2e8",
+                    "secondary": "#505f76",
+                    "surface-container-high": "#e7e8ee",
+                    "surface-container": "#ededf4",
+                    "surface-bright": "#f8f9ff",
+                    "on-surface-variant": "#414750",
+                    "outline": "#727781",
+                    "on-background": "#191c20",
+                    "on-tertiary-fixed-variant": "#743500",
+                    "on-tertiary-fixed": "#321300"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "input-height": "32px",
+                    "rail-collapsed": "50px",
+                    "container-padding": "16px",
+                    "element-gap": "8px",
+                    "rail-expanded": "220px",
+                    "grid-row-height": "28px"
+            },
+            "fontFamily": {
+                    "screen-header": ["Segoe UI"],
+                    "label-caps": ["Segoe UI"],
+                    "body-default": ["Segoe UI"],
+                    "grid-cell": ["Segoe UI"],
+                    "section-header": ["Segoe UI"]
+            },
+            "fontSize": {
+                    "screen-header": ["16px", {"lineHeight": "24px", "fontWeight": "700"}],
+                    "label-caps": ["11px", {"lineHeight": "14px", "fontWeight": "700"}],
+                    "body-default": ["12px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "grid-cell": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "section-header": ["14px", {"lineHeight": "20px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            font-size: 18px;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .grid-header { background-color: #005596; color: white; }
+        .grid-row-alt { background-color: #F0F5FF; }
+    </style>
+</head>
+<body class="bg-background font-body-default text-on-background h-screen flex flex-col overflow-hidden">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full px-container-padding h-[48px] bg-surface border-b border-outline-variant z-50">
+<div class="text-screen-header font-screen-header font-bold text-primary">Mini Clinic Management</div>
+<div class="flex items-center gap-4">
+<span class="text-label-caps font-label-caps text-on-surface-variant">Bác sĩ | dr_anh</span>
+<button class="text-label-caps font-label-caps text-primary font-bold hover:bg-surface-container-low px-3 py-1 transition-colors duration-200 cursor-pointer rounded">Logout</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar -->
+<aside class="flex flex-col h-full border-r border-outline-variant bg-surface-container w-rail-expanded transition-all duration-300">
+<div class="p-4 border-b border-outline-variant">
+<div class="text-section-header font-section-header text-primary uppercase">Mini Clinic</div>
+<div class="text-[10px] text-on-surface-variant opacity-70">Management</div>
+</div>
+<nav class="flex-1 py-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-body-default font-body-default">Tổng quan</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person_filled">person_filled</span>
+<span class="text-body-default font-body-default">Bệnh nhân</span>
+</a>
+<!-- Active Tab: Lịch hẹn (Mapping History here for demo context) -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container font-bold border-l-4 border-primary transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="text-body-default font-body-default">Lịch hẹn</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="text-body-default font-body-default">Kho dược</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-body-default font-body-default">Cấu hình</span>
+</a>
+</nav>
+<div class="mt-auto p-4 border-t border-outline-variant flex justify-center cursor-pointer hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-on-surface-variant">chevron_left</span></div></aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col p-container-padding gap-element-gap overflow-hidden">
+<!-- Page Header & Filters -->
+<div class="bg-white border border-outline-variant p-4 flex flex-col gap-4">
+<div class="flex justify-between items-center">
+<h1 class="text-section-header font-section-header text-primary flex items-center gap-2">
+<span class="material-symbols-outlined">history</span>
+                        LỊCH SỬ KHÁM BỆNH
+                    </h1>
+<div class="flex gap-2">
+<button class="bg-primary text-white px-4 h-input-height text-body-default flex items-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+                            Xem chi tiết
+                        </button>
+<button class="bg-white border border-primary text-primary px-4 h-input-height text-body-default flex items-center gap-2 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[16px]">print</span>
+                            In báo cáo
+                        </button>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-4 items-end bg-surface-container-low p-3 rounded">
+<!-- Date Range Filter -->
+<div class="col-span-3 flex flex-col gap-1">
+<label class="text-label-caps font-label-caps text-on-surface-variant">TỪ NGÀY</label>
+<div class="relative">
+<input class="w-full h-input-height border border-outline-variant px-2 text-body-default focus:border-b-2 focus:border-primary outline-none transition-all" type="date" value="2023-10-01"/>
+</div>
+</div>
+<div class="col-span-3 flex flex-col gap-1">
+<label class="text-label-caps font-label-caps text-on-surface-variant">ĐẾN NGÀY</label>
+<div class="relative">
+<input class="w-full h-input-height border border-outline-variant px-2 text-body-default focus:border-b-2 focus:border-primary outline-none transition-all" type="date" value="2023-10-27"/>
+</div>
+</div>
+<!-- Keyword Search -->
+<div class="col-span-4 flex flex-col gap-1">
+<label class="text-label-caps font-label-caps text-on-surface-variant">TÌM KIẾM (MÃ BN, TÊN, BÁC SĨ...)</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-2 text-outline">search</span>
+<input class="w-full h-input-height border border-outline-variant pl-8 pr-2 text-body-default focus:border-b-2 focus:border-primary outline-none transition-all" placeholder="Nhập từ khóa tìm kiếm..." type="text"/>
+</div>
+</div>
+<!-- Filter Action -->
+<div class="col-span-2">
+<button class="w-full bg-secondary text-white h-input-height text-body-default font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">filter_alt</span>
+                            LỌC DỮ LIỆU
+                        </button>
+</div>
+</div>
+</div>
+<!-- DataGridView Representation -->
+<div class="flex-1 bg-white border border-outline-variant flex flex-col overflow-hidden">
+<div class="overflow-x-auto overflow-y-auto custom-scrollbar h-full">
+<table class="w-full border-collapse">
+<thead class="sticky top-0 z-10">
+<tr class="grid-header h-[32px]">
+<th class="px-3 text-left font-section-header text-[12px] border-r border-white/20 min-w-[120px]">Ngày khám</th>
+<th class="px-3 text-left font-section-header text-[12px] border-r border-white/20 min-w-[100px]">Mã BN</th>
+<th class="px-3 text-left font-section-header text-[12px] border-r border-white/20 min-w-[180px]">Họ tên</th>
+<th class="px-3 text-left font-section-header text-[12px] border-r border-white/20 min-w-[150px]">Bác sĩ</th>
+<th class="px-3 text-left font-section-header text-[12px] border-r border-white/20 min-w-[250px]">Chẩn đoán</th>
+<th class="px-3 text-center font-section-header text-[12px] min-w-[120px]">Trạng thái</th>
+</tr>
+</thead>
+<tbody class="text-grid-cell font-grid-cell">
+<!-- Selected Row -->
+<tr class="h-grid-row-height border-b border-outline-variant bg-primary/10 cursor-pointer">
+<td class="px-3 border-r border-outline-variant">27/10/2023 09:15</td>
+<td class="px-3 border-r border-outline-variant font-bold text-primary">BN-00482</td>
+<td class="px-3 border-r border-outline-variant">Nguyễn Văn An</td>
+<td class="px-3 border-r border-outline-variant">BS. Trần Mạnh Hùng</td>
+<td class="px-3 border-r border-outline-variant italic">Viêm họng cấp tính, theo dõi sốt</td>
+<td class="px-3 text-center">
+<span class="bg-green-600 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">Đã khám</span>
+</td>
+</tr>
+<tr class="h-grid-row-height border-b border-outline-variant grid-row-alt hover:bg-surface-container-high cursor-pointer">
+<td class="px-3 border-r border-outline-variant">27/10/2023 08:30</td>
+<td class="px-3 border-r border-outline-variant font-bold text-primary">BN-00481</td>
+<td class="px-3 border-r border-outline-variant">Lê Thị Thanh Bình</td>
+<td class="px-3 border-r border-outline-variant">BS. Phạm Thu Thảo</td>
+<td class="px-3 border-r border-outline-variant italic">Kiểm tra định kỳ thai nhi 24 tuần</td>
+<td class="px-3 text-center">
+<span class="bg-green-600 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">Đã khám</span>
+</td>
+</tr>
+<tr class="h-grid-row-height border-b border-outline-variant hover:bg-surface-container-high cursor-pointer">
+<td class="px-3 border-r border-outline-variant">26/10/2023 15:45</td>
+<td class="px-3 border-r border-outline-variant font-bold text-primary">BN-00479</td>
+<td class="px-3 border-r border-outline-variant">Trần Quốc Toản</td>
+<td class="px-3 border-r border-outline-variant">BS. Lê Anh Tuấn</td>
+<td class="px-3 border-r border-outline-variant italic">Chấn thương phần mềm cổ tay trái</td>
+<td class="px-3 text-center">
+<span class="bg-yellow-500 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">Đang khám</span>
+</td>
+</tr>
+<tr class="h-grid-row-height border-b border-outline-variant grid-row-alt hover:bg-surface-container-high cursor-pointer">
+<td class="px-3 border-r border-outline-variant">26/10/2023 14:20</td>
+<td class="px-3 border-r border-outline-variant font-bold text-primary">BN-00478</td>
+<td class="px-3 border-r border-outline-variant">Hoàng Minh Khôi</td>
+<td class="px-3 border-r border-outline-variant">BS. Trần Mạnh Hùng</td>
+<td class="px-3 border-r border-outline-variant italic">Viêm dạ dày cấp</td>
+<td class="px-3 text-center">
+<span class="bg-green-600 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">Đã khám</span>
+</td>
+</tr>
+<!-- Repeat Data -->
+<tr class="h-grid-row-height border-b border-outline-variant hover:bg-surface-container-high cursor-pointer">
+<td class="px-3 border-r border-outline-variant">26/10/2023 10:10</td>
+<td class="px-3 border-r border-outline-variant font-bold text-primary">BN-00475</td>
+<td class="px-3 border-r border-outline-variant">Phạm Mỹ Linh</td>
+<td class="px-3 border-r border-outline-variant">BS. Phạm Thu Thảo</td>
+<td class="px-3 border-r border-outline-variant italic">Tăng huyết áp vô căn</td>
+<td class="px-3 text-center">
+<span class="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">Đã hủy</span>
+</td>
+</tr>
+<tr class="h-grid-row-height border-b border-outline-variant grid-row-alt hover:bg-surface-container-high cursor-pointer">
+<td class="px-3 border-r border-outline-variant">25/10/2023 16:30</td>
+<td class="px-3 border-r border-outline-variant font-bold text-primary">BN-00472</td>
+<td class="px-3 border-r border-outline-variant">Đặng Văn Lâm</td>
+<td class="px-3 border-r border-outline-variant">BS. Lê Anh Tuấn</td>
+<td class="px-3 border-r border-outline-variant italic">Viêm phế quản mãn tính</td>
+<td class="px-3 text-center">
+<span class="bg-green-600 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">Đã khám</span>
+</td>
+</tr>
+<tr class="h-grid-row-height border-b border-outline-variant hover:bg-surface-container-high cursor-pointer">
+<td class="px-3 border-r border-outline-variant">25/10/2023 14:00</td>
+<td class="px-3 border-r border-outline-variant font-bold text-primary">BN-00470</td>
+<td class="px-3 border-r border-outline-variant">Nguyễn Thùy Chi</td>
+<td class="px-3 border-r border-outline-variant">BS. Trần Mạnh Hùng</td>
+<td class="px-3 border-r border-outline-variant italic">Suy nhược cơ thể</td>
+<td class="px-3 text-center">
+<span class="bg-green-600 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">Đã khám</span>
+</td>
+</tr>
+<tr class="h-grid-row-height border-b border-outline-variant grid-row-alt hover:bg-surface-container-high cursor-pointer">
+<td class="px-3 border-r border-outline-variant">25/10/2023 09:45</td>
+<td class="px-3 border-r border-outline-variant font-bold text-primary">BN-00468</td>
+<td class="px-3 border-r border-outline-variant">Vũ Đức Hải</td>
+<td class="px-3 border-r border-outline-variant">BS. Lê Anh Tuấn</td>
+<td class="px-3 border-r border-outline-variant italic">Dị ứng thời tiết</td>
+<td class="px-3 text-center">
+<span class="bg-green-600 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">Đã khám</span>
+</td>
+</tr>
+<tr class="h-grid-row-height border-b border-outline-variant hover:bg-surface-container-high cursor-pointer">
+<td class="px-3 border-r border-outline-variant">24/10/2023 11:20</td>
+<td class="px-3 border-r border-outline-variant font-bold text-primary">BN-00465</td>
+<td class="px-3 border-r border-outline-variant">Lý Hải Nam</td>
+<td class="px-3 border-r border-outline-variant">BS. Phạm Thu Thảo</td>
+<td class="px-3 border-r border-outline-variant italic">Đau đầu vận mạch</td>
+<td class="px-3 text-center">
+<span class="bg-green-600 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">Đã khám</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Summary Bar -->
+<div class="bg-surface-container-low border border-outline-variant px-4 py-2 flex justify-between items-center text-label-caps font-label-caps text-on-surface-variant">
+<div class="flex gap-4">
+<span>TỔNG CỘNG: 145 BẢN GHI</span>
+<span>ĐÃ KHÁM: 132</span>
+<span>ĐANG KHÁM: 8</span>
+<span>ĐÃ HỦY: 5</span>
+</div>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-high rounded"><span class="material-symbols-outlined">first_page</span></button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-high rounded"><span class="material-symbols-outlined">chevron_left</span></button>
+<div class="flex items-center gap-1 px-2 border border-outline-variant bg-white">
+                        Trang 1 / 15
+                    </div>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-high rounded"><span class="material-symbols-outlined">chevron_right</span></button>
+<button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-high rounded"><span class="material-symbols-outlined">last_page</span></button>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer -->
+<footer class="fixed bottom-0 w-full flex items-center justify-between px-container-padding bg-surface-container-low z-50 h-[28px] border-t border-outline-variant">
+<div class="text-grid-cell font-grid-cell text-secondary">Hệ thống: Sẵn sàng | Phiên bản 2.4.0</div>
+<div class="flex gap-4 text-grid-cell font-grid-cell text-secondary">
+<span class="hover:text-primary cursor-pointer transition-colors">Trợ giúp</span>
+<span class="hover:text-primary cursor-pointer transition-colors">Liên hệ</span>
+</div>
+</footer>
+</body></html>

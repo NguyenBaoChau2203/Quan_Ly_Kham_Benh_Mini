@@ -1,0 +1,298 @@
+﻿<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#f8f9ff",
+                    "tertiary-fixed": "#ffdbc8",
+                    "on-primary-container": "#a4caff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed-variant": "#004881",
+                    "on-error": "#ffffff",
+                    "on-surface": "#191c20",
+                    "inverse-on-surface": "#eff0f6",
+                    "inverse-primary": "#a2c9ff",
+                    "on-error-container": "#93000a",
+                    "primary-fixed-dim": "#a2c9ff",
+                    "surface": "#f8f9ff",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#642d00",
+                    "primary-container": "#005596",
+                    "tertiary-fixed-dim": "#ffb68a",
+                    "secondary-fixed": "#d3e4fe",
+                    "surface-container-low": "#f2f3f9",
+                    "on-secondary-container": "#54647a",
+                    "tertiary-container": "#873f01",
+                    "primary": "#003e6f",
+                    "secondary": "#505f76",
+                    "secondary-container": "#d0e1fb",
+                    "inverse-surface": "#2e3035",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "on-tertiary-container": "#ffb88c",
+                    "surface-dim": "#d9dae0",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#1b60a2",
+                    "primary-fixed": "#d3e4ff",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#001c38",
+                    "surface-container-highest": "#e1e2e8",
+                    "on-secondary-fixed": "#0b1c30",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#c1c7d2",
+                    "surface-variant": "#e1e2e8",
+                    "surface-container-high": "#e7e8ee",
+                    "surface-container": "#ededf4",
+                    "surface-bright": "#f8f9ff",
+                    "on-surface-variant": "#414750",
+                    "outline": "#727781",
+                    "on-background": "#191c20",
+                    "on-tertiary-fixed-variant": "#743500",
+                    "on-tertiary-fixed": "#321300"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "input-height": "32px",
+                    "rail-collapsed": "50px",
+                    "container-padding": "16px",
+                    "element-gap": "8px",
+                    "rail-expanded": "220px",
+                    "grid-row-height": "28px"
+            },
+            "fontFamily": {
+                    "screen-header": ["Segoe UI"],
+                    "label-caps": ["Segoe UI"],
+                    "body-default": ["Segoe UI"],
+                    "grid-cell": ["Segoe UI"],
+                    "section-header": ["Segoe UI"]
+            },
+            "fontSize": {
+                    "screen-header": ["16px", {"lineHeight": "24px", "fontWeight": "700"}],
+                    "label-caps": ["11px", {"lineHeight": "14px", "fontWeight": "700"}],
+                    "body-default": ["12px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "grid-cell": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "section-header": ["14px", {"lineHeight": "20px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-default text-body-default flex h-screen overflow-hidden">
+<!-- SideNavBar -->
+<aside class="flex flex-col h-full border-r border-outline-variant overflow-y-auto bg-surface-container w-rail-expanded transition-all duration-300 shrink-0">
+<div class="p-container-padding">
+<h1 class="text-section-header font-section-header text-primary">Mini Clinic</h1>
+<p class="text-label-caps font-label-caps text-on-surface-variant">Management</p>
+</div>
+<nav class="flex-1 mt-4">
+<div class="text-on-surface-variant p-element-gap flex items-center gap-3 px-container-padding hover:bg-surface-container-high transition-all duration-150 cursor-pointer">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Tổng quan</span>
+</div>
+<div class="bg-primary-container text-on-primary-container font-bold border-l-4 border-primary p-element-gap flex items-center gap-3 px-container-padding transition-all duration-150 cursor-pointer">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person_filled</span>
+<span>Bệnh nhân</span>
+</div>
+<div class="text-on-surface-variant p-element-gap flex items-center gap-3 px-container-padding hover:bg-surface-container-high transition-all duration-150 cursor-pointer">
+<span class="material-symbols-outlined">calendar_today</span>
+<span>Lịch hẹn</span>
+</div>
+<div class="text-on-surface-variant p-element-gap flex items-center gap-3 px-container-padding hover:bg-surface-container-high transition-all duration-150 cursor-pointer">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>Kho dược</span>
+</div>
+<div class="text-on-surface-variant p-element-gap flex items-center gap-3 px-container-padding hover:bg-surface-container-high transition-all duration-150 cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span>Cấu hình</span>
+</div>
+</nav>
+<div class="mt-auto p-container-padding border-t border-outline-variant flex justify-center cursor-pointer hover:bg-surface-container-high">
+<span class="material-symbols-outlined text-on-surface-variant">chevron_left</span>
+</div></aside>
+<!-- Main Canvas -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full px-container-padding h-[48px] bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="text-screen-header font-screen-header font-bold text-primary">Đăng ký lượt khám</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-label-caps font-label-caps text-secondary">Nhân viên tiếp nhận | nv_du</span>
+<button class="text-label-caps font-label-caps text-primary hover:bg-surface-container-low px-2 py-1 transition-colors duration-200 cursor-pointer">Logout</button>
+</div>
+</header>
+<!-- Content Area -->
+<div class="flex-1 p-container-padding overflow-y-auto space-y-4">
+<!-- Patient Summary Panel (Level 1 Surface) -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded p-4">
+<div class="flex items-start justify-between">
+<div class="flex gap-4">
+<div class="w-16 h-16 bg-secondary-container rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined !text-3xl">person</span>
+</div>
+<div>
+<h2 class="text-section-header font-section-header text-primary">NGUYỄN VĂN A</h2>
+<div class="grid grid-cols-2 gap-x-8 gap-y-1 mt-2 text-on-surface-variant">
+<span>Mã BN: <span class="font-bold text-on-surface">BN20240501</span></span>
+<span>Giới tính: <span class="font-bold text-on-surface">Nam</span></span>
+<span>Ngày sinh: <span class="font-bold text-on-surface">15/08/1992 (32 tuổi)</span></span>
+<span>Điện thoại: <span class="font-bold text-on-surface">0901 234 567</span></span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant rounded text-label-caps font-label-caps">BỆNH NHÂN CŨ</span>
+<p class="mt-2 text-label-caps font-label-caps text-outline italic">Lần khám cuối: 12/12/2023</p>
+</div>
+</div>
+</section>
+<!-- Registration Form Grid -->
+<div class="grid grid-cols-12 gap-4">
+<!-- Left Column: Visit Info -->
+<div class="col-span-8 space-y-4">
+<div class="bg-surface-container-lowest border border-outline-variant rounded">
+<div class="px-4 py-2 border-b border-outline-variant bg-surface-container-low">
+<span class="text-section-header font-section-header">Thông tin lượt khám</span>
+</div>
+<div class="p-4 grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<label class="text-label-caps font-label-caps text-on-surface-variant">DỊCH VỤ KHÁM</label>
+<select class="w-full h-input-height border border-outline-variant rounded px-2 focus:border-b-2 focus:border-primary outline-none bg-surface-bright">
+<option>Khám nội tổng quát</option>
+<option>Khám nhi</option>
+<option>Khám tai mũi họng</option>
+</select>
+</div>
+<div class="space-y-1">
+<label class="text-label-caps font-label-caps text-on-surface-variant">PHÒNG KHÁM</label>
+<select class="w-full h-input-height border border-outline-variant rounded px-2 focus:border-b-2 focus:border-primary outline-none bg-surface-bright">
+<option>P.01 - Phòng Nội 1</option>
+<option>P.02 - Phòng Nội 2</option>
+<option>P.03 - Phòng Nhi</option>
+</select>
+</div>
+<div class="col-span-2 space-y-1">
+<label class="text-label-caps font-label-caps text-on-surface-variant">LÝ DO KHÁM</label>
+<textarea class="w-full border border-outline-variant rounded p-2 focus:border-b-2 focus:border-primary outline-none bg-surface-bright" placeholder="Nhập triệu chứng hoặc lý do khám..." rows="2"></textarea>
+</div>
+<div class="space-y-1">
+<label class="text-label-caps font-label-caps text-on-surface-variant">BÁC SĨ CHỈ ĐỊNH</label>
+<input class="w-full h-input-height border border-outline-variant rounded px-2 focus:border-b-2 focus:border-primary outline-none bg-surface-bright" type="text" value="BS. Lê Văn B"/>
+</div>
+<div class="space-y-1">
+<label class="text-label-caps font-label-caps text-on-surface-variant">HÌNH THỨC THANH TOÁN</label>
+<div class="flex gap-4 h-input-height items-center">
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="text-primary focus:ring-primary" name="payment" type="radio"/> Tiền mặt
+                                    </label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="text-primary focus:ring-primary" name="payment" type="radio"/> Chuyển khoản
+                                    </label>
+</div>
+</div>
+</div>
+</div>
+<!-- Error State Example -->
+<div class="flex items-center gap-2 text-error px-1">
+<span class="material-symbols-outlined !text-[14px]">error</span>
+<span class="text-label-caps font-label-caps">Không thể tạo lượt khám. Vui lòng thử lại.</span>
+</div>
+</div>
+<!-- Right Column: Status & Action -->
+<div class="col-span-4 space-y-4">
+<!-- Success State Panel -->
+<div class="bg-primary-container text-white rounded p-6 text-center shadow-lg border-2 border-primary">
+<p class="text-label-caps font-label-caps opacity-90 mb-1">TRẠNG THÁI HÀNG ĐỢI</p>
+<h3 class="text-[32px] font-bold leading-none">Số thứ tự hôm nay: 042</h3>
+<div class="mt-4 pt-4 border-t border-on-primary-container/30 flex justify-between text-label-caps">
+<span>ĐANG ĐỢI: 05</span>
+<span>DỰ KIẾN: 10:15 AM</span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-4 space-y-3">
+<button class="w-full h-12 bg-primary text-white font-bold rounded shadow-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">how_to_reg</span>
+                            Đăng ký khám
+                        </button>
+<button class="w-full h-10 border border-primary text-primary font-bold rounded hover:bg-surface-container-low transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">close</span>
+                            Hủy lượt khám
+                        </button>
+</div>
+<!-- Mini Info Card -->
+<div class="bg-tertiary-fixed text-on-tertiary-fixed rounded p-3 text-[11px]">
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-on-tertiary-fixed-variant">info</span>
+<p>Lưu ý: Bệnh nhân thuộc đối tượng ưu tiên (người già &gt; 80 tuổi). Vui lòng kiểm tra và sắp xếp số thứ tự ưu tiên nếu cần.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Visits Table (Data Density Example) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden">
+<div class="px-4 py-2 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<span class="text-section-header font-section-header">Lịch sử khám gần đây</span>
+</div>
+<table class="w-full text-left border-collapse">
+<thead class="bg-primary text-white text-label-caps font-label-caps">
+<tr>
+<th class="px-4 h-[28px] border-r border-white/10">NGÀY KHÁM</th>
+<th class="px-4 h-[28px] border-r border-white/10">DỊCH VỤ</th>
+<th class="px-4 h-[28px] border-r border-white/10">BÁC SĨ</th>
+<th class="px-4 h-[28px] border-r border-white/10">CHẨN ĐOÁN</th>
+<th class="px-4 h-[28px]">TRẠNG THÁI</th>
+</tr>
+</thead>
+<tbody class="text-grid-cell font-grid-cell">
+<tr class="h-grid-row-height border-b border-outline-variant hover:bg-surface-container-low">
+<td class="px-4">12/12/2023</td>
+<td class="px-4">Khám Nội</td>
+<td class="px-4">BS. Lê Văn B</td>
+<td class="px-4">Viêm họng cấp</td>
+<td class="px-4"><span class="bg-surface-container-high px-2 py-0.5 rounded text-[10px]">Đã khám</span></td>
+</tr>
+<tr class="h-grid-row-height border-b border-outline-variant bg-secondary-container/10 hover:bg-surface-container-low">
+<td class="px-4">05/06/2023</td>
+<td class="px-4">Khám Nội</td>
+<td class="px-4">BS. Lê Văn B</td>
+<td class="px-4">Rối loạn tiêu hóa</td>
+<td class="px-4"><span class="bg-surface-container-high px-2 py-0.5 rounded text-[10px]">Đã khám</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Footer -->
+<footer class="fixed bottom-0 w-full flex items-center justify-between px-container-padding bg-surface-container-low z-50 h-[28px] border-t border-outline-variant text-grid-cell font-grid-cell text-secondary">
+<span>Hệ thống: Sẵn sàng | Phiên bản 2.4.0</span>
+<div class="flex gap-4">
+<span class="hover:text-primary cursor-default transition-colors">Trợ giúp</span>
+<span class="hover:text-primary cursor-default transition-colors">Liên hệ</span>
+</div>
+</footer>
+</main>
+</body></html>
