@@ -8,7 +8,8 @@ Bạn chịu trách nhiệm các phần “core”, **toàn bộ WinForms GUI**,
 - `DataProvider` + chuẩn DAL.
 - Stored procedures: `sp_TaoLuotKham`, `sp_HoanTatKham`.
 - SHA256 password hashing rule (bắt buộc).
-- Module History/Dashboard (ưu tiên simple dashboard).
+- `AuthDAL.DangNhap`: implement truy vấn đăng nhập (Châu đã implement `AuthBLL` nên sở hữu luôn DAL tương ứng).
+- Module History/Dashboard: implement `ThongKeBLL` + `ThongKeDAL` (ưu tiên simple dashboard).
 - Chuẩn bị deliverables DB: `Setup.sql` + `.bak` + hướng dẫn setup.
 
 ## Non‑Negotiable Rules
@@ -77,5 +78,6 @@ Bạn chịu trách nhiệm các phần “core”, **toàn bộ WinForms GUI**,
 
 - Setup DB trên máy khác thành công bằng `Setup.sql`.
 - 2 stored procedures chạy đúng theo rules (transaction/lock/status).
-- Login dùng SHA256 thống nhất với dữ liệu demo.
+- Login dùng SHA256 thống nhất với dữ liệu demo (`AuthDAL` + `AuthBLL` chạy end-to-end).
+- `ThongKeDAL`/`ThongKeBLL` trả đúng `DataTable` cho lịch sử và dashboard.
 - Các hàm đổi trạng thái trả về đúng theo `RowsAffected == 1`.
