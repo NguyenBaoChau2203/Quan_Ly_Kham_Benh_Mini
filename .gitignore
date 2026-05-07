@@ -29,3 +29,8 @@ Desktop.ini
 
 # Optional: export artifacts
 design/**/node_modules/
+
+# Local dotnet CLI cache used by Codex/sandbox
+.dotnet-home/
+.nuget-appdata/
+.nuget-localappdata/

@@ -8,11 +8,13 @@ Mini Clinic Management System (WinForms + SQL Server) cho bài môn học.
    - `Quy_dinh_du_an_Quan_Ly_Kham_Benh_Mini_Nhom_Truong_v1_3_Cai_thien.docx`
 2. Đọc chuẩn triển khai đã chốt (bắt buộc theo đúng kiến trúc/luồng/trạng thái):
    - `docs/Master_Plan.md`
-3. Mỗi bạn đọc task của mình và làm đúng “hợp đồng hàm”:
+3. Đọc hướng dẫn làm việc nhóm để biết thứ tự đọc, phạm vi file, và cách tránh conflict:
+   - `docs/Team_Workflow.md`
+4. Mỗi bạn đọc task của mình và làm đúng “hợp đồng hàm”:
    - Châu (Lead): `docs/tasks/Task_Chau_Lead.md`
-   - Dự (Reception): `docs/tasks/Task_Du_Reception.md`
+   - Dư (Reception): `docs/tasks/Task_Du_Reception.md`
    - Hùng (Doctor): `docs/tasks/Task_Hung_Doctor.md`
-4. Xem UI mẫu (ảnh + HTML tham khảo từ Google Stitch):
+5. Xem UI mẫu (ảnh + HTML tham khảo từ Google Stitch):
    - `design/stitch_mini_clinic_management_system/`
    - Mỗi màn hình có `screen.png` (ảnh) và `code.html` (tham khảo layout/style).
 
@@ -21,7 +23,7 @@ Mini Clinic Management System (WinForms + SQL Server) cho bài môn học.
 - `docs/`: tài liệu chuẩn triển khai và phân công
 - `design/`: UI mockups (Stitch export)
 - `sql/`: script DB (Setup/backup placeholders)
-- `src/`: Visual Studio solution (sẽ đặt 4 projects: DTO/DAL/BLL/GUI)
+- `src/`: Visual Studio solution `ClinicApp.sln` và 4 projects: DTO/DAL/BLL/GUI
 
 ## Non-Negotiables (Tóm tắt)
 
