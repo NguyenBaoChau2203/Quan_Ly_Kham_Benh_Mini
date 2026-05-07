@@ -271,3 +271,48 @@ VALUES (10, 2, GETDATE(), @Today, 'DangCho', NULL, N'Đau đầu, chóng mặt')
 PRINT N'=== Setup hoàn tất: ClinicAppDB ===';
 PRINT N'Tài khoản demo: tiepnhan/123, bacsi/123';
 GO
+
+-- =============================================
+-- Reception module procedures
+-- =============================================
+
+DROP PROCEDURE IF EXISTS sp_ThemBenhNhan;
+GO
+
+CREATE PROCEDURE sp_ThemBenhNhan
+    @HoTen       NVARCHAR(100),
+    @NgaySinh    DATE          = NULL,
+    @GioiTinh    NVARCHAR(10),
+    @SDT         VARCHAR(15),
+    @CCCD        VARCHAR(12)   = NULL,
+    @DiaChi      NVARCHAR(200) = NULL
+AS
+BEGIN
+    SET NOCOUNT OFF;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF @CCCD IS NOT NULL
+           AND EXISTS (
+                SELECT 1
+                FROM BenhNhan WITH (UPDLOCK, HOLDLOCK)
+                WHERE CCCD = @CCCD
+           )
+        BEGIN
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        INSERT INTO BenhNhan (HoTen, NgaySinh, GioiTinh, SDT, CCCD, DiaChi)
+        VALUES (@HoTen, @NgaySinh, @GioiTinh, @SDT, @CCCD, @DiaChi);
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+    END CATCH
+END
+GO

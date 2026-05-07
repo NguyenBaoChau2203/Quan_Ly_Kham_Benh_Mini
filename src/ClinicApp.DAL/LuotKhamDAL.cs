@@ -1,7 +1,7 @@
 using System;
 using System.Data;
-using Microsoft.Data.SqlClient;
 using ClinicApp.DTO;
+using Microsoft.Data.SqlClient;
 
 namespace ClinicApp.DAL;
 
@@ -28,13 +28,17 @@ public class LuotKhamDAL
         DateTime ngayKham = DateTime.Now;
         try
         {
-            var dt = DataProvider.Instance.ExecuteQuery("SELECT NgayKham FROM LuotKham WHERE MaLK = @MaLK", new[] { new SqlParameter("@MaLK", SqlDbType.Int) { Value = maLK } });
+            var dt = DataProvider.Instance.ExecuteQuery(
+                "SELECT NgayKham FROM LuotKham WHERE MaLK = @MaLK",
+                new[] { new SqlParameter("@MaLK", SqlDbType.Int) { Value = maLK } });
             if (dt != null && dt.Rows.Count > 0 && dt.Rows[0]["NgayKham"] != DBNull.Value)
             {
                 ngayKham = Convert.ToDateTime(dt.Rows[0]["NgayKham"]);
             }
         }
-        catch { }
+        catch
+        {
+        }
 
         return new LuotKhamDTO
         {
