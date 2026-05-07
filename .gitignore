@@ -26,6 +26,7 @@ Desktop.ini
 
 # SQL Server localdb backups
 *.bak
+!sql/backup/*.bak
 
 # Optional: export artifacts
 design/**/node_modules/
