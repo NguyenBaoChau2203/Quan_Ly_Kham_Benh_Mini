@@ -266,3 +266,87 @@ VALUES (10, 2, GETDATE(), @Today, 'DangCho', NULL, N'Đau đầu, chóng mặt')
 PRINT N'=== Setup hoàn tất: ClinicAppDB ===';
 PRINT N'Tài khoản demo: tiepnhan/123, bacsi/123';
 GO
+
+-- =============================================
+-- Reception module procedures
+-- =============================================
+
+DROP PROCEDURE IF EXISTS sp_ThemBenhNhan;
+GO
+
+CREATE PROCEDURE sp_ThemBenhNhan
+    @HoTen       NVARCHAR(100),
+    @NgaySinh    DATE          = NULL,
+    @GioiTinh    NVARCHAR(10),
+    @SDT         VARCHAR(15),
+    @CCCD        VARCHAR(12)   = NULL,
+    @DiaChi      NVARCHAR(200) = NULL
+AS
+BEGIN
+    SET NOCOUNT OFF;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF @CCCD IS NOT NULL
+           AND EXISTS (
+                SELECT 1
+                FROM BenhNhan WITH (UPDLOCK, HOLDLOCK)
+                WHERE CCCD = @CCCD
+           )
+        BEGIN
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        INSERT INTO BenhNhan (HoTen, NgaySinh, GioiTinh, SDT, CCCD, DiaChi)
+        VALUES (@HoTen, @NgaySinh, @GioiTinh, @SDT, @CCCD, @DiaChi);
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+    END CATCH
+END
+GO
+
+DROP PROCEDURE IF EXISTS sp_TaoLuotKham;
+GO
+
+CREATE PROCEDURE sp_TaoLuotKham
+    @MaBN       INT,
+    @MaBacSi    INT           = NULL,
+    @GhiChu     NVARCHAR(500) = NULL,
+    @SoThuTu    INT           OUTPUT
+AS
+BEGIN
+    SET NOCOUNT OFF;
+    SET XACT_ABORT ON;
+
+    SET @SoThuTu = NULL;
+
+    DECLARE @Now DATETIME = GETDATE();
+    DECLARE @Ngay DATE = CAST(@Now AS DATE);
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        SELECT @SoThuTu = ISNULL(MAX(SoThuTu), 0) + 1
+        FROM LuotKham WITH (UPDLOCK, HOLDLOCK)
+        WHERE NgayKhamDate = @Ngay;
+
+        INSERT INTO LuotKham (MaBN, SoThuTu, NgayKham, NgayKhamDate, TrangThai, MaBacSi, GhiChu)
+        VALUES (@MaBN, @SoThuTu, @Now, @Ngay, 'DangCho', @MaBacSi, @GhiChu);
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+
+        SET @SoThuTu = NULL;
+    END CATCH
+END
+GO
