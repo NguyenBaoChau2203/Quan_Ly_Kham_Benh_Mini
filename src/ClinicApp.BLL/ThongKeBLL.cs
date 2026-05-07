@@ -9,7 +9,13 @@ public class ThongKeBLL
 
     public DataTable LayLichSuKham(DateTime fromDate, DateTime toDate, string? keyword)
     {
-        return fromDate > toDate ? new DataTable() : _thongKeDAL.LayLichSuKham(fromDate, toDate, keyword);
+        if (fromDate > toDate)
+        {
+            return new DataTable();
+        }
+
+        string? normalizedKeyword = string.IsNullOrWhiteSpace(keyword) ? null : keyword.Trim();
+        return _thongKeDAL.LayLichSuKham(fromDate, toDate, normalizedKeyword);
     }
 
     public DataTable LayThongKe7Ngay()

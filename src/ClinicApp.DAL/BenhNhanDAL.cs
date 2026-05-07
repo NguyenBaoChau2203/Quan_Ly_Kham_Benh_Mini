@@ -28,11 +28,17 @@ WHERE @Keyword IS NULL
 ORDER BY MaBN DESC";
 
         string? trimmedKeyword = string.IsNullOrWhiteSpace(keyword) ? null : keyword.Trim();
-        SqlParameter[] parameters =
-        [
-            new("@Keyword", SqlDbType.NVarChar, 100) { Value = (object?)trimmedKeyword ?? DBNull.Value },
-            new("@LikeKeyword", SqlDbType.NVarChar, 102) { Value = trimmedKeyword == null ? DBNull.Value : $"%{trimmedKeyword}%" }
-        ];
+        var parameters = new[]
+        {
+            new SqlParameter("@Keyword", SqlDbType.NVarChar, 100)
+            {
+                Value = (object?)trimmedKeyword ?? DBNull.Value
+            },
+            new SqlParameter("@LikeKeyword", SqlDbType.NVarChar, 102)
+            {
+                Value = trimmedKeyword == null ? DBNull.Value : $"%{trimmedKeyword}%"
+            }
+        };
 
         return DataProvider.Instance.ExecuteQuery(query, parameters);
     }
@@ -42,12 +48,12 @@ ORDER BY MaBN DESC";
         const string query = @"
 SELECT MaBN, HoTen, NgaySinh, GioiTinh, SDT, CCCD, DiaChi
 FROM BenhNhan
-WHERE MaBN = @MaBN";
+WHERE MaBN = @MaBN;";
 
-        SqlParameter[] parameters =
-        [
-            new("@MaBN", SqlDbType.Int) { Value = maBN }
-        ];
+        var parameters = new[]
+        {
+            new SqlParameter("@MaBN", SqlDbType.Int) { Value = maBN }
+        };
 
         DataTable dt = DataProvider.Instance.ExecuteQuery(query, parameters);
         return dt.Rows.Count == 1 ? MapBenhNhan(dt.Rows[0]) : null;
@@ -55,17 +61,30 @@ WHERE MaBN = @MaBN";
 
     public bool ThemBenhNhan(BenhNhanDTO bn)
     {
-        SqlParameter[] parameters =
-        [
-            new("@HoTen", SqlDbType.NVarChar, 100) { Value = bn.HoTen.Trim() },
-            new("@NgaySinh", SqlDbType.Date) { Value = (object?)bn.NgaySinh?.Date ?? DBNull.Value },
-            new("@GioiTinh", SqlDbType.NVarChar, 10) { Value = bn.GioiTinh.Trim() },
-            new("@SDT", SqlDbType.VarChar, 15) { Value = bn.SDT.Trim() },
-            new("@CCCD", SqlDbType.VarChar, 12) { Value = string.IsNullOrWhiteSpace(bn.CCCD) ? DBNull.Value : bn.CCCD.Trim() },
-            new("@DiaChi", SqlDbType.NVarChar, 200) { Value = string.IsNullOrWhiteSpace(bn.DiaChi) ? DBNull.Value : bn.DiaChi.Trim() }
-        ];
+        const string query = @"
+INSERT INTO BenhNhan (HoTen, NgaySinh, GioiTinh, SDT, CCCD, DiaChi)
+VALUES (@HoTen, @NgaySinh, @GioiTinh, @SDT, @CCCD, @DiaChi);";
 
-        return DataProvider.Instance.ExecuteNonQuerySP("sp_ThemBenhNhan", parameters) == 1;
+        var parameters = new[]
+        {
+            new SqlParameter("@HoTen", SqlDbType.NVarChar, 100) { Value = bn.HoTen.Trim() },
+            new SqlParameter("@NgaySinh", SqlDbType.Date)
+            {
+                Value = bn.NgaySinh.HasValue ? bn.NgaySinh.Value.Date : DBNull.Value
+            },
+            new SqlParameter("@GioiTinh", SqlDbType.NVarChar, 10) { Value = bn.GioiTinh.Trim() },
+            new SqlParameter("@SDT", SqlDbType.VarChar, 15) { Value = bn.SDT.Trim() },
+            new SqlParameter("@CCCD", SqlDbType.VarChar, 12)
+            {
+                Value = string.IsNullOrWhiteSpace(bn.CCCD) ? DBNull.Value : bn.CCCD.Trim()
+            },
+            new SqlParameter("@DiaChi", SqlDbType.NVarChar, 200)
+            {
+                Value = string.IsNullOrWhiteSpace(bn.DiaChi) ? DBNull.Value : bn.DiaChi.Trim()
+            }
+        };
+
+        return DataProvider.Instance.ExecuteNonQuery(query, parameters) == 1;
     }
 
     public bool CapNhatBenhNhan(BenhNhanDTO bn)
@@ -78,18 +97,27 @@ SET HoTen = @HoTen,
     SDT = @SDT,
     CCCD = @CCCD,
     DiaChi = @DiaChi
-WHERE MaBN = @MaBN";
+WHERE MaBN = @MaBN;";
 
-        SqlParameter[] parameters =
-        [
-            new("@MaBN", SqlDbType.Int) { Value = bn.MaBN },
-            new("@HoTen", SqlDbType.NVarChar, 100) { Value = bn.HoTen.Trim() },
-            new("@NgaySinh", SqlDbType.Date) { Value = (object?)bn.NgaySinh?.Date ?? DBNull.Value },
-            new("@GioiTinh", SqlDbType.NVarChar, 10) { Value = bn.GioiTinh.Trim() },
-            new("@SDT", SqlDbType.VarChar, 15) { Value = bn.SDT.Trim() },
-            new("@CCCD", SqlDbType.VarChar, 12) { Value = string.IsNullOrWhiteSpace(bn.CCCD) ? DBNull.Value : bn.CCCD.Trim() },
-            new("@DiaChi", SqlDbType.NVarChar, 200) { Value = string.IsNullOrWhiteSpace(bn.DiaChi) ? DBNull.Value : bn.DiaChi.Trim() }
-        ];
+        var parameters = new[]
+        {
+            new SqlParameter("@MaBN", SqlDbType.Int) { Value = bn.MaBN },
+            new SqlParameter("@HoTen", SqlDbType.NVarChar, 100) { Value = bn.HoTen.Trim() },
+            new SqlParameter("@NgaySinh", SqlDbType.Date)
+            {
+                Value = bn.NgaySinh.HasValue ? bn.NgaySinh.Value.Date : DBNull.Value
+            },
+            new SqlParameter("@GioiTinh", SqlDbType.NVarChar, 10) { Value = bn.GioiTinh.Trim() },
+            new SqlParameter("@SDT", SqlDbType.VarChar, 15) { Value = bn.SDT.Trim() },
+            new SqlParameter("@CCCD", SqlDbType.VarChar, 12)
+            {
+                Value = string.IsNullOrWhiteSpace(bn.CCCD) ? DBNull.Value : bn.CCCD.Trim()
+            },
+            new SqlParameter("@DiaChi", SqlDbType.NVarChar, 200)
+            {
+                Value = string.IsNullOrWhiteSpace(bn.DiaChi) ? DBNull.Value : bn.DiaChi.Trim()
+            }
+        };
 
         return DataProvider.Instance.ExecuteNonQuery(query, parameters) == 1;
     }
@@ -102,11 +130,11 @@ FROM BenhNhan
 WHERE CCCD = @CCCD
   AND (@ExcludeMaBN IS NULL OR MaBN <> @ExcludeMaBN)";
 
-        SqlParameter[] parameters =
-        [
-            new("@CCCD", SqlDbType.VarChar, 12) { Value = cccd.Trim() },
-            new("@ExcludeMaBN", SqlDbType.Int) { Value = (object?)excludeMaBN ?? DBNull.Value }
-        ];
+        var parameters = new[]
+        {
+            new SqlParameter("@CCCD", SqlDbType.VarChar, 12) { Value = cccd.Trim() },
+            new SqlParameter("@ExcludeMaBN", SqlDbType.Int) { Value = (object?)excludeMaBN ?? DBNull.Value }
+        };
 
         object? result = DataProvider.Instance.ExecuteScalar(query, parameters);
         return result != null && Convert.ToInt32(result) > 0;
@@ -120,11 +148,11 @@ FROM BenhNhan
 WHERE SDT = @SDT
   AND (@ExcludeMaBN IS NULL OR MaBN <> @ExcludeMaBN)";
 
-        SqlParameter[] parameters =
-        [
-            new("@SDT", SqlDbType.VarChar, 15) { Value = sdt.Trim() },
-            new("@ExcludeMaBN", SqlDbType.Int) { Value = (object?)excludeMaBN ?? DBNull.Value }
-        ];
+        var parameters = new[]
+        {
+            new SqlParameter("@SDT", SqlDbType.VarChar, 15) { Value = sdt.Trim() },
+            new SqlParameter("@ExcludeMaBN", SqlDbType.Int) { Value = (object?)excludeMaBN ?? DBNull.Value }
+        };
 
         object? result = DataProvider.Instance.ExecuteScalar(query, parameters);
         return result != null && Convert.ToInt32(result) > 0;

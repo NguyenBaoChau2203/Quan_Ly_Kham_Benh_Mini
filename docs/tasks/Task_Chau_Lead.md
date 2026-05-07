@@ -1,5 +1,7 @@
 # Task: Châu (Lead)
 
+Chi tiết kế hoạch theo phase và cách giao việc cho AI agent: `docs/tasks/Task_Chau_Agent_Runbook.md`.
+
 ## Phạm Vi
 
 Bạn chịu trách nhiệm các phần “core”, **toàn bộ WinForms GUI**, và chốt chuẩn để 2 bạn còn lại implement đúng BLL/DAL:

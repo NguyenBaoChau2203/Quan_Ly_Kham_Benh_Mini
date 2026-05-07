@@ -8,4 +8,5 @@ public class LuotKhamDTO
     public DateTime NgayKham { get; set; }
     public string TrangThai { get; set; } = string.Empty;
     public int? MaBacSi { get; set; }
+    public string? GhiChu { get; set; }
 }

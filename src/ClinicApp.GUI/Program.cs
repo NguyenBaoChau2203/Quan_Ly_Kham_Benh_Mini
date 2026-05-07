@@ -25,6 +25,21 @@ static class Program
         }
         DataProvider.Instance.ConnectionString = connStr;
 
+        try
+        {
+            using var conn = new Microsoft.Data.SqlClient.SqlConnection(connStr);
+            conn.Open();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Không thể kết nối CSDL. Vui lòng kiểm tra lại cấu hình SQL Server.\nChi tiết: {ex.Message}",
+                "Lỗi kết nối",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+            return;
+        }
+
         // To customize application configuration such as set high DPI settings or default font,
         // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
