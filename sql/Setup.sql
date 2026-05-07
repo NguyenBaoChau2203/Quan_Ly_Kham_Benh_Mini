@@ -103,19 +103,19 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Upsert BoDemSoThuTu với lock
-        IF EXISTS (SELECT 1 FROM BoDemSoThuTu WITH (UPDLOCK, HOLDLOCK) WHERE Ngay = @Ngay)
-        BEGIN
-            UPDATE BoDemSoThuTu
-            SET    SoCuoi = SoCuoi + 1
-            WHERE  Ngay = @Ngay;
+        -- Upsert BoDemSoThuTu với lock an toàn
+        UPDATE BoDemSoThuTu WITH (UPDLOCK, SERIALIZABLE)
+        SET    SoCuoi = SoCuoi + 1
+        WHERE  Ngay = @Ngay;
 
-            SELECT @SoThuTu = SoCuoi FROM BoDemSoThuTu WHERE Ngay = @Ngay;
-        END
-        ELSE
+        IF @@ROWCOUNT = 0
         BEGIN
             SET @SoThuTu = 1;
             INSERT INTO BoDemSoThuTu (Ngay, SoCuoi) VALUES (@Ngay, 1);
+        END
+        ELSE
+        BEGIN
+            SELECT @SoThuTu = SoCuoi FROM BoDemSoThuTu WHERE Ngay = @Ngay;
         END
 
         -- Insert LuotKham
@@ -153,20 +153,25 @@ BEGIN
     SET NOCOUNT ON;
     SET @KetQua = 0;
 
-    -- Guard: kiểm tra trạng thái hiện tại
-    IF NOT EXISTS (SELECT 1 FROM LuotKham WHERE MaLK = @MaLK AND TrangThai = 'DangKham')
-    BEGIN
-        RETURN;
-    END
-
-    -- Guard: chống double-save
-    IF EXISTS (SELECT 1 FROM ChiTietKham WHERE MaLK = @MaLK)
-    BEGIN
-        RETURN;
-    END
-
     BEGIN TRY
         BEGIN TRANSACTION;
+
+        -- Guard trong transaction để chống double-save/concurrent save.
+        IF NOT EXISTS (
+            SELECT 1
+            FROM LuotKham WITH (UPDLOCK, HOLDLOCK)
+            WHERE MaLK = @MaLK AND TrangThai = 'DangKham'
+        )
+        BEGIN
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        IF EXISTS (SELECT 1 FROM ChiTietKham WHERE MaLK = @MaLK)
+        BEGIN
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
 
         INSERT INTO ChiTietKham (MaLK, TrieuChung, ChanDoan, ToaThuoc, LoiDan)
         VALUES (@MaLK, @TrieuChung, @ChanDoan, @ToaThuoc, @LoiDan);

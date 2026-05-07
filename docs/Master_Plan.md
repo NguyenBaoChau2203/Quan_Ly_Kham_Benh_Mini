@@ -189,7 +189,7 @@ DTO tối thiểu (đặt ở `ClinicApp.DTO`):
 
 - `NhanVienDTO`: `MaNV`, `Username`, `Role` (`TiepNhan` | `BacSi`), `HoTen`.
 - `BenhNhanDTO`: `MaBN`, `HoTen`, `NgaySinh?`, `GioiTinh`, `SDT`, `CCCD?`, `DiaChi?`.
-- `LuotKhamDTO`: `MaLK`, `MaBN`, `SoThuTu`, `NgayKham`, `TrangThai`, `MaBacSi?`.
+- `LuotKhamDTO`: `MaLK`, `MaBN`, `SoThuTu`, `NgayKham`, `TrangThai`, `MaBacSi?`, `GhiChu?`.
 - `ChiTietKhamDTO`: `MaLK`, `TrieuChung`, `ChanDoan`, `ToaThuoc`, `LoiDan`.
 
 #### 8.1.1) Auth
@@ -428,6 +428,10 @@ Các DAL/BLL trả `DataTable` cần thống nhất tên cột để Châu bind 
 - `GioiTinh`
 - `TenBacSi`
 - `GhiChu`
+- `TrieuChung`
+- `ChanDoan`
+- `ToaThuoc`
+- `LoiDan`
 
 `LayThongKe7Ngay()`:
 

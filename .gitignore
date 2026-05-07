@@ -35,3 +35,4 @@ design/**/node_modules/
 .dotnet-home/
 .nuget-appdata/
 .nuget-localappdata/
+.nuget-packages/
