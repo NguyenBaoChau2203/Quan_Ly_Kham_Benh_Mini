@@ -28,7 +28,7 @@ Bạn chịu trách nhiệm các phần “core”, **toàn bộ WinForms GUI**,
   - `DangNhap`
   - `TimBenhNhan`
   - `TaoLuotKham` (trả `null` khi fail)
-  - `LayHangDoiKham`
+  - `LayHangDoiDangCho`
   - `ChuyenSangDangKham` (atomic)
   - `HoanTatKham`
   - `HuyLuotKham` (atomic)

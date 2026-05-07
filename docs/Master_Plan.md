@@ -331,6 +331,124 @@ WinForms:
 - Nếu Châu đang làm toàn bộ GUI: các bạn **không** chỉnh project `ClinicApp.GUI` để tránh conflict.
 - DataGridView refresh cần giữ focus theo `MaLK`.
 
+### 10.1) UI Implementation Contract (bổ sung theo `design/`)
+
+Mục tiêu: tránh hiểu nhầm giữa mockup giao diện và phạm vi code thật.
+
+#### 10.1.1) Nguyên tắc dùng mockup
+
+- `design/` là mẫu tham khảo về layout, mật độ hiển thị, màu sắc, font, cách đặt control và trạng thái giao diện.
+- Dữ liệu trong ảnh/mockup chỉ là minh họa, không phải spec nghiệp vụ bắt buộc.
+- Các tên mẫu như `nv_du`, `dr_anh`, tên bệnh nhân, ICD-10, BHYT, CLS, hóa đơn, kho dược... không phải dữ liệu chính thức của v1.
+- Khi mockup khác `Master_Plan.md`, ưu tiên `Master_Plan.md`.
+- GUI phải lấy role/tên nhân viên từ `NhanVienDTO`, không hardcode theo ảnh mockup.
+- Tài khoản demo chính thức vẫn là `tiepnhan/123` và `bacsi/123`.
+
+#### 10.1.2) Form chính thức cho v1
+
+Châu implement các form WinForms tối thiểu sau:
+
+- `FrmLogin`: đăng nhập, phân quyền `TiepNhan`/`BacSi`.
+- `FrmMain`: shell chính, top bar, left navigation, logout.
+- `FrmBenhNhan`: tìm/thêm/sửa bệnh nhân.
+- `FrmTaoLuotKham`: đăng ký lượt khám, hiển thị số thứ tự, hủy lượt nếu còn `DangCho`.
+- `FrmHangDoiKham`: bác sĩ xem hàng đợi `DangCho`, refresh, bắt đầu khám.
+- `FrmKhamBenh`: nhập khám, lưu + in, xử lý double-save.
+- `FrmInPhieu`: preview/view phiếu, có thể in nếu máy hỗ trợ.
+- `FrmLichSu`: lọc lịch sử theo ngày + keyword.
+- `FrmDashboard`: dashboard đơn giản 7 ngày.
+
+#### 10.1.3) Module ngoài phạm vi v1
+
+Các mục có trong mockup nhưng chưa thuộc phạm vi v1:
+
+- `Lịch hẹn`
+- `Kho dược`
+- `Cấu hình`
+- `Kê đơn thuốc` riêng biệt
+- `Chỉ định CLS`
+- `Hóa đơn`
+- `BHYT`
+- `ICD-10`
+- `Dịch vụ khám`
+- `Phòng khám`
+- `Hình thức thanh toán`
+
+Quy tắc implement:
+
+- Ưu tiên ẩn hoặc disable các menu/nút ngoài phạm vi để demo không bị hỏi sang chức năng chưa làm.
+- Nếu vẫn để hiện cho giống mockup, click phải báo thân thiện: `Chức năng này chưa triển khai trong phiên bản demo.`
+- Không thêm bảng/cột mới chỉ vì mockup có field minh họa, trừ khi Châu cập nhật `Master_Plan.md` + `Setup.sql` + DTO/contract trước.
+- `Dịch vụ khám`, `Phòng khám`, `Hình thức thanh toán` nếu xuất hiện trên form v1 thì chỉ để hiển thị/disabled hoặc dùng giá trị mặc định; không persist vào DB nếu chưa chốt schema.
+- `ICD-10`, `BHYT`, `CLS` không bắt buộc cho demo v1; nội dung khám chính vẫn theo `ChiTietKhamDTO`.
+
+#### 10.1.4) Cột `DataTable` tối thiểu để GUI bind
+
+Các DAL/BLL trả `DataTable` cần thống nhất tên cột để Châu bind DataGridView không phải đoán:
+
+`TimBenhNhan(string? keyword)`:
+
+- `MaBN`
+- `HoTen`
+- `NgaySinh`
+- `GioiTinh`
+- `SDT`
+- `CCCD`
+- `DiaChi`
+- `TrangThaiGanNhat` (optional; nếu không có thì GUI ẩn cột trạng thái hoặc để trống)
+
+`LayHangDoiDangCho()`:
+
+- `MaLK`
+- `SoThuTu`
+- `MaBN`
+- `HoTen`
+- `NgayKham`
+- `ThoiGianChoPhut`
+- `TrangThai` (luôn là `DangCho` cho hàm này)
+
+`LayLichSuKham(DateTime fromDate, DateTime toDate, string? keyword)`:
+
+- `MaLK`
+- `NgayKham`
+- `MaBN`
+- `HoTen`
+- `TenBacSi`
+- `ChanDoan`
+- `TrangThai`
+
+`LayDuLieuInPhieu(int maLK)`:
+
+- `MaLK`
+- `SoThuTu`
+- `NgayKham`
+- `MaBN`
+- `HoTen`
+- `NgaySinh`
+- `GioiTinh`
+- `TenBacSi`
+- `GhiChu`
+
+`LayThongKe7Ngay()`:
+
+- `Ngay`
+- `SoLuot`
+- `SoDaKham`
+- `SoDangCho`
+
+GUI chỉ hiển thị tiếng Việt; DB/code vẫn dùng giá trị chuẩn:
+
+- `DangCho` → `Đang chờ`
+- `DangKham` → `Đang khám`
+- `DaKham` → `Đã khám`
+- `DaHuy` → `Đã hủy`
+
+#### 10.1.5) Dashboard v1
+
+- Dashboard v1 chỉ cần hiển thị số liệu đơn giản từ `LayThongKe7Ngay()`.
+- Các quick action ngoài luồng chính trên mockup phải ẩn/disable.
+- Không làm dashboard nâng cao nếu login, tiếp nhận, tạo lượt, khám, in, lịch sử chưa ổn định.
+
 Git/Merge:
 
 - Bắt buộc có `.gitignore` (không commit `bin/`, `obj/`, `.vs/`).
