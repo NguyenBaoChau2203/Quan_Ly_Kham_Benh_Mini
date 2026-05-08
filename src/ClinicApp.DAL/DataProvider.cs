@@ -33,6 +33,7 @@ public sealed class DataProvider
         var dt = new DataTable();
         try
         {
+            if (string.IsNullOrEmpty(ConnectionString)) throw new InvalidOperationException("ConnectionString has not been initialized.");
             using var conn = new SqlConnection(ConnectionString);
             using var cmd = new SqlCommand(query, conn) { CommandType = CommandType.Text };
             AddParameters(cmd, parameters);
@@ -54,6 +55,7 @@ public sealed class DataProvider
         var dt = new DataTable();
         try
         {
+            if (string.IsNullOrEmpty(ConnectionString)) throw new InvalidOperationException("ConnectionString has not been initialized.");
             using var conn = new SqlConnection(ConnectionString);
             using var cmd = new SqlCommand(spName, conn) { CommandType = CommandType.StoredProcedure };
             AddParameters(cmd, parameters);
@@ -79,6 +81,7 @@ public sealed class DataProvider
     {
         try
         {
+            if (string.IsNullOrEmpty(ConnectionString)) throw new InvalidOperationException("ConnectionString has not been initialized.");
             using var conn = new SqlConnection(ConnectionString);
             conn.Open();
             using var cmd = new SqlCommand(query, conn) { CommandType = CommandType.Text };
@@ -101,6 +104,7 @@ public sealed class DataProvider
     {
         try
         {
+            if (string.IsNullOrEmpty(ConnectionString)) throw new InvalidOperationException("ConnectionString has not been initialized.");
             using var conn = new SqlConnection(ConnectionString);
             conn.Open();
             using var cmd = new SqlCommand(spName, conn) { CommandType = CommandType.StoredProcedure };
@@ -125,6 +129,7 @@ public sealed class DataProvider
     {
         try
         {
+            if (string.IsNullOrEmpty(ConnectionString)) throw new InvalidOperationException("ConnectionString has not been initialized.");
             using var conn = new SqlConnection(ConnectionString);
             conn.Open();
             using var cmd = new SqlCommand(query, conn) { CommandType = CommandType.Text };

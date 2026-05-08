@@ -29,19 +29,16 @@ ORDER BY lk.SoThuTu ASC;";
 
     public bool ChuyenSangDangKham(int maLK, int maBacSi)
     {
-        const string query = @"
-UPDATE LuotKham
-SET TrangThai = 'DangKham',
-    MaBacSi = @MaBacSi
-WHERE MaLK = @MaLK AND TrangThai = 'DangCho';";
-
         var parameters = new[]
         {
             new SqlParameter("@MaLK", SqlDbType.Int) { Value = maLK },
-            new SqlParameter("@MaBacSi", SqlDbType.Int) { Value = maBacSi }
+            new SqlParameter("@MaBacSi", SqlDbType.Int) { Value = maBacSi },
+            new SqlParameter("@KetQua", SqlDbType.Int) { Direction = ParameterDirection.Output }
         };
 
-        return DataProvider.Instance.ExecuteNonQuery(query, parameters) == 1;
+        DataProvider.Instance.ExecuteNonQuerySP("sp_ChuyenSangDangKham", parameters);
+
+        return parameters[2].Value != DBNull.Value && Convert.ToInt32(parameters[2].Value) == 1;
     }
 
     public bool HoanTatKham(ChiTietKhamDTO ct)

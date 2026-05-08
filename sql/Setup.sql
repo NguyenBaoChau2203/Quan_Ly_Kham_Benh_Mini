@@ -90,33 +90,31 @@ CREATE PROCEDURE sp_TaoLuotKham
     @MaBacSi    INT         = NULL,
     @GhiChu     NVARCHAR(500) = NULL,
     @MaLK       INT         OUTPUT,
-    @SoThuTu    INT         OUTPUT
+    @SoThuTu    INT         OUTPUT,
+    @NgayKham   DATETIME    OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
     SET @MaLK = 0;
     SET @SoThuTu = 0;
 
-    DECLARE @Now  DATETIME = GETDATE();
+    SET @NgayKham = GETDATE();
+    DECLARE @Now  DATETIME = @NgayKham;
     DECLARE @Ngay DATE     = CAST(@Now AS DATE);
 
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Upsert BoDemSoThuTu với lock an toàn
-        UPDATE BoDemSoThuTu WITH (UPDLOCK, SERIALIZABLE)
-        SET    SoCuoi = SoCuoi + 1
-        WHERE  Ngay = @Ngay;
+        -- Upsert BoDemSoThuTu v>i lock an toAn, dung MERGE cho concurrency
+        MERGE BoDemSoThuTu WITH (HOLDLOCK) AS target
+        USING (SELECT @Ngay AS Ngay) AS source
+        ON (target.Ngay = source.Ngay)
+        WHEN MATCHED THEN 
+            UPDATE SET SoCuoi = SoCuoi + 1
+        WHEN NOT MATCHED THEN
+            INSERT (Ngay, SoCuoi) VALUES (@Ngay, 1);
 
-        IF @@ROWCOUNT = 0
-        BEGIN
-            SET @SoThuTu = 1;
-            INSERT INTO BoDemSoThuTu (Ngay, SoCuoi) VALUES (@Ngay, 1);
-        END
-        ELSE
-        BEGIN
-            SELECT @SoThuTu = SoCuoi FROM BoDemSoThuTu WHERE Ngay = @Ngay;
-        END
+        SELECT @SoThuTu = SoCuoi FROM BoDemSoThuTu WHERE Ngay = @Ngay;
 
         -- Insert LuotKham
         INSERT INTO LuotKham (MaBN, SoThuTu, NgayKham, NgayKhamDate, TrangThai, MaBacSi, GhiChu)
@@ -313,6 +311,36 @@ BEGIN
     BEGIN CATCH
         IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
+    END CATCH
+END
+GO
+
+-- =============================================
+-- sp_ChuyenSangDangKham
+-- =============================================
+CREATE PROCEDURE sp_ChuyenSangDangKham
+    @MaLK    INT,
+    @MaBacSi INT,
+    @KetQua  INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET @KetQua = 0;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        IF EXISTS (
+            SELECT 1 FROM LuotKham WITH (UPDLOCK, HOLDLOCK)
+            WHERE MaLK = @MaLK AND TrangThai = 'DangCho'
+        )
+        BEGIN
+            UPDATE LuotKham SET TrangThai = 'DangKham', MaBacSi = @MaBacSi
+            WHERE MaLK = @MaLK AND TrangThai = 'DangCho';
+            IF @@ROWCOUNT = 1 SET @KetQua = 1;
+        END
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
     END CATCH
 END
 GO

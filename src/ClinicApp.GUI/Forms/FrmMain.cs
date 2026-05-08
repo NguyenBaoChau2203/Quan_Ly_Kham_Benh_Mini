@@ -18,11 +18,10 @@ public class FrmMain : Form
         _modules = BuildModules(currentUser.Role);
 
         UiTheme.ApplyForm(this);
-
         Text = "Mini Clinic Management";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(1100, 680);
-        Size = new Size(1220, 740);
+        Size = new Size(1366, 768);
         WindowState = FormWindowState.Maximized;
 
         BuildShell();
@@ -31,6 +30,7 @@ public class FrmMain : Form
 
     private void BuildShell()
     {
+        Controls.Add(BuildFooter());
         Controls.Add(BuildContentPanel());
         Controls.Add(BuildNavigationPanel());
         Controls.Add(BuildTopBar());
@@ -40,45 +40,50 @@ public class FrmMain : Form
     {
         var topBar = new Panel
         {
-            BackColor = UiTheme.Primary,
+            BackColor = UiTheme.SurfaceContainerLowest,
             Dock = DockStyle.Top,
             Height = UiTheme.TopBarHeight,
-            Padding = new Padding(16, 10, 16, 10)
+            Padding = new Padding(16, 0, 16, 0)
         };
 
-        var title = new Label
+        topBar.Controls.Add(new Label
         {
             Dock = DockStyle.Left,
-            Width = 420,
-            Font = UiTheme.AppTitleFont,
-            ForeColor = Color.White,
+            Width = 430,
+            Font = new Font("Segoe UI", 14F, FontStyle.Bold),
+            ForeColor = UiTheme.Primary,
             Text = "Mini Clinic Management",
             TextAlign = ContentAlignment.MiddleLeft
+        });
+
+        var logoutPanel = new Panel
+        {
+            Dock = DockStyle.Right,
+            Width = 110,
+            Padding = new Padding(0, 8, 0, 8)
         };
 
         var logoutButton = new Button
         {
-            Dock = DockStyle.Right,
-            Width = 104,
-            Text = "Đăng xuất"
+            Dock = DockStyle.Fill,
+            Text = "ĐĂNG XUẤT"
         };
-        UiTheme.ApplySecondaryButton(logoutButton);
+        UiTheme.ApplyPrimaryButton(logoutButton);
         logoutButton.Click += LogoutButton_Click;
+        logoutPanel.Controls.Add(logoutButton);
 
-        var userLabel = new Label
+        topBar.Controls.Add(logoutPanel);
+        topBar.Controls.Add(new Label
         {
             Dock = DockStyle.Right,
             Width = 360,
-            Font = UiTheme.BodyFont,
-            ForeColor = Color.White,
-            Text = $"{DisplayName(_currentUser)}  •  {RoleDisplayName(_currentUser.Role)}",
+            Font = UiTheme.LabelFont,
+            ForeColor = UiTheme.Text,
+            Text = $"{RoleDisplayName(_currentUser.Role)} | {_currentUser.Username}",
             TextAlign = ContentAlignment.MiddleRight,
             Padding = new Padding(0, 0, 14, 0)
-        };
-
-        topBar.Controls.Add(title);
-        topBar.Controls.Add(logoutButton);
-        topBar.Controls.Add(userLabel);
+        });
+        topBar.Controls.Add(new Panel { Dock = DockStyle.Bottom, Height = 1, BackColor = UiTheme.Border });
 
         return topBar;
     }
@@ -87,65 +92,89 @@ public class FrmMain : Form
     {
         var navigationPanel = new Panel
         {
-            BackColor = UiTheme.Surface,
+            BackColor = UiTheme.SurfaceContainer,
             Dock = DockStyle.Left,
             Width = UiTheme.NavigationWidth,
             Padding = new Padding(0, 0, 0, 8)
         };
 
-        var rolePanel = new Panel
+        var brandPanel = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 76,
-            Padding = new Padding(18, 12, 12, 8),
-            BackColor = UiTheme.Surface
+            Height = 92,
+            Padding = new Padding(18, 14, 12, 8),
+            BackColor = UiTheme.SurfaceContainer
         };
-
-        var roleLabel = new Label
+        brandPanel.Controls.Add(new Label
         {
             Dock = DockStyle.Top,
             Height = 26,
             Font = UiTheme.SectionHeaderFont,
-            ForeColor = UiTheme.Text,
-            Text = RoleDisplayName(_currentUser.Role),
+            ForeColor = UiTheme.Primary,
+            Text = "Mini Clinic",
             TextAlign = ContentAlignment.BottomLeft
-        };
-
-        var usernameLabel = new Label
+        });
+        brandPanel.Controls.Add(new Label
         {
             Dock = DockStyle.Top,
-            Height = 22,
+            Height = 24,
             Font = UiTheme.SmallFont,
             ForeColor = UiTheme.MutedText,
-            Text = _currentUser.Username,
+            Text = "MANAGEMENT",
             TextAlign = ContentAlignment.MiddleLeft
-        };
+        });
 
         _navigationList.Dock = DockStyle.Fill;
         _navigationList.FlowDirection = FlowDirection.TopDown;
         _navigationList.WrapContents = false;
         _navigationList.AutoScroll = true;
-        _navigationList.BackColor = UiTheme.Surface;
+        _navigationList.BackColor = UiTheme.SurfaceContainer;
 
         foreach (ModuleInfo module in _modules)
         {
             var button = new Button
             {
-                Text = module.Title,
-                Tag = module.Key
+                Tag = module.Key,
+                Text = $"{IconFor(module.Key)}   {module.Title}"
             };
+
             UiTheme.ApplyNavigationButton(button, selected: false);
             button.Click += NavigationButton_Click;
+
             _navigationButtons[module.Key] = button;
             _navigationList.Controls.Add(button);
         }
 
-        rolePanel.Controls.Add(usernameLabel);
-        rolePanel.Controls.Add(roleLabel);
+        var rolePanel = new Panel
+        {
+            Dock = DockStyle.Bottom,
+            Height = 72,
+            Padding = new Padding(18, 8, 12, 8),
+            BackColor = UiTheme.SurfaceContainer
+        };
+        rolePanel.Controls.Add(new Label
+        {
+            Dock = DockStyle.Top,
+            Height = 24,
+            Font = UiTheme.LabelFont,
+            ForeColor = UiTheme.Text,
+            Text = RoleDisplayName(_currentUser.Role),
+            TextAlign = ContentAlignment.MiddleLeft
+        });
+        rolePanel.Controls.Add(new Label
+        {
+            Dock = DockStyle.Top,
+            Height = 22,
+            Font = UiTheme.SmallFont,
+            ForeColor = UiTheme.MutedText,
+            Text = DisplayName(_currentUser),
+            TextAlign = ContentAlignment.MiddleLeft
+        });
 
         navigationPanel.Controls.Add(_navigationList);
-        navigationPanel.Controls.Add(UiTheme.CreateDivider());
         navigationPanel.Controls.Add(rolePanel);
+        navigationPanel.Controls.Add(UiTheme.CreateDivider());
+        navigationPanel.Controls.Add(brandPanel);
 
         return navigationPanel;
     }
@@ -158,11 +187,42 @@ public class FrmMain : Form
         return _contentPanel;
     }
 
+    private static Control BuildFooter()
+    {
+        var footer = new Panel
+        {
+            Dock = DockStyle.Bottom,
+            Height = 28,
+            BackColor = UiTheme.SurfaceContainerLow,
+            Padding = new Padding(16, 0, 16, 0)
+        };
+
+        footer.Controls.Add(new Label
+        {
+            Dock = DockStyle.Left,
+            Width = 430,
+            Font = UiTheme.SmallFont,
+            ForeColor = UiTheme.MutedText,
+            Text = "Hệ thống: Sẵn sàng | Phiên bản 2.4.0",
+            TextAlign = ContentAlignment.MiddleLeft
+        });
+        footer.Controls.Add(new Label
+        {
+            Dock = DockStyle.Right,
+            Width = 160,
+            Font = UiTheme.SmallFont,
+            ForeColor = UiTheme.MutedText,
+            Text = "Trợ giúp    Liên hệ",
+            TextAlign = ContentAlignment.MiddleRight
+        });
+
+        return footer;
+    }
+
     private void SelectInitialModule()
     {
         ModuleInfo? dashboard = _modules.FirstOrDefault(module => module.Key == "Dashboard");
         ModuleInfo? initialModule = dashboard ?? _modules.FirstOrDefault();
-
         if (initialModule is not null)
         {
             ShowModule(initialModule.Key);
@@ -172,7 +232,12 @@ public class FrmMain : Form
     private void ShowEmbeddedForm(string moduleKey, object? param = null)
     {
         _contentPanel.SuspendLayout();
-        _contentPanel.Controls.Clear();
+        while (_contentPanel.Controls.Count > 0)
+        {
+            Control old = _contentPanel.Controls[0];
+            _contentPanel.Controls.RemoveAt(0);
+            old.Dispose();
+        }
 
         Form embeddedForm = moduleKey switch
         {
@@ -197,10 +262,7 @@ public class FrmMain : Form
     private FrmHangDoiKham CreateHangDoiKham()
     {
         var frm = new FrmHangDoiKham(_currentUser);
-        frm.ExamStarted += (s, e) =>
-        {
-            ShowModule("KhamBenh", e.MaLK);
-        };
+        frm.ExamStarted += (_, e) => ShowModule("KhamBenh", e.MaLK);
         return frm;
     }
 
@@ -217,40 +279,13 @@ public class FrmMain : Form
         ModuleInfo? module = _modules.FirstOrDefault(item => string.Equals(item.Key, moduleKey, StringComparison.OrdinalIgnoreCase));
         if (module is null)
         {
-            MessageBox.Show(
-                "Chức năng này chưa triển khai trong phiên bản demo.",
-                "Thông báo",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
+            MessageBox.Show("Chức năng này chưa triển khai trong phiên bản demo.", "Thông báo",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
 
         UpdateNavigationSelection(module.Key);
         ShowEmbeddedForm(module.Key, param);
-    }
-
-    private static void AddInfoRow(TableLayoutPanel body, int rowIndex, string label, string value)
-    {
-        var labelControl = new Label
-        {
-            Dock = DockStyle.Fill,
-            Font = UiTheme.LabelFont,
-            ForeColor = UiTheme.MutedText,
-            Text = label,
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-
-        var valueControl = new Label
-        {
-            Dock = DockStyle.Fill,
-            Font = UiTheme.BodyFont,
-            ForeColor = UiTheme.Text,
-            Text = value,
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-
-        body.Controls.Add(labelControl, 0, rowIndex);
-        body.Controls.Add(valueControl, 1, rowIndex);
     }
 
     private void UpdateNavigationSelection(string selectedKey)
@@ -269,17 +304,27 @@ public class FrmMain : Form
 
     private void LogoutButton_Click(object? sender, EventArgs e)
     {
-        DialogResult result = MessageBox.Show(
-            "Bạn có muốn đăng xuất khỏi hệ thống?",
-            "Đăng xuất",
-            MessageBoxButtons.YesNo,
-            MessageBoxIcon.Question,
-            MessageBoxDefaultButton.Button2);
-
+        DialogResult result = MessageBox.Show("Bạn có muốn đăng xuất khỏi hệ thống?", "Đăng xuất",
+            MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
         if (result == DialogResult.Yes)
         {
             Close();
         }
+    }
+
+    private static string IconFor(string moduleKey)
+    {
+        return moduleKey switch
+        {
+            "Dashboard" => "▦",
+            "BenhNhan" => "□",
+            "TaoLuotKham" => "+",
+            "HangDoiKham" => "≡",
+            "KhamBenh" => "♥",
+            "InPhieu" => "⎙",
+            "LichSu" => "↺",
+            _ => "·"
+        };
     }
 
     private static List<ModuleInfo> BuildModules(string role)
@@ -288,10 +333,10 @@ public class FrmMain : Form
         {
             return new List<ModuleInfo>
             {
+                new("Dashboard", "Tổng quan", "Tổng quan nhanh dữ liệu khám trong 7 ngày.", "ThongKeBLL"),
                 new("BenhNhan", "Bệnh nhân", "Tìm kiếm, thêm mới và cập nhật hồ sơ bệnh nhân.", "BenhNhanBLL"),
-                new("TaoLuotKham", "Tạo lượt khám", "Đăng ký lượt khám, nhận số thứ tự và hủy lượt khi còn chờ.", "LuotKhamBLL"),
-                new("LichSu", "Lịch sử", "Tra cứu lịch sử khám theo ngày và từ khóa.", "ThongKeBLL"),
-                new("Dashboard", "Dashboard", "Tổng quan nhanh dữ liệu khám trong 7 ngày.", "ThongKeBLL")
+                new("TaoLuotKham", "Lịch hẹn", "Đăng ký lượt khám, nhận số thứ tự và hủy lượt khi còn chờ.", "LuotKhamBLL"),
+                new("LichSu", "Lịch sử", "Tra cứu lịch sử khám theo ngày và từ khóa.", "ThongKeBLL")
             };
         }
 
@@ -299,17 +344,17 @@ public class FrmMain : Form
         {
             return new List<ModuleInfo>
             {
+                new("Dashboard", "Tổng quan", "Tổng quan nhanh dữ liệu khám trong 7 ngày.", "ThongKeBLL"),
                 new("HangDoiKham", "Hàng đợi khám", "Theo dõi lượt đang chờ và bắt đầu khám.", "KhamBLL"),
                 new("KhamBenh", "Khám bệnh", "Nhập chẩn đoán, toa thuốc và hoàn tất lượt khám.", "KhamBLL"),
-                new("InPhieu", "In phiếu", "Xem trước phiếu khám để phục vụ demo không phụ thuộc máy in.", "KhamBLL"),
-                new("LichSu", "Lịch sử", "Tra cứu lịch sử khám theo ngày và từ khóa.", "ThongKeBLL"),
-                new("Dashboard", "Dashboard", "Tổng quan nhanh dữ liệu khám trong 7 ngày.", "ThongKeBLL")
+                new("InPhieu", "In phiếu", "Xem trước phiếu khám để phục vụ demo.", "KhamBLL"),
+                new("LichSu", "Lịch sử", "Tra cứu lịch sử khám theo ngày và từ khóa.", "ThongKeBLL")
             };
         }
 
         return new List<ModuleInfo>
         {
-            new("Dashboard", "Dashboard", "Tài khoản chưa có menu nghiệp vụ được cấu hình.", "AuthBLL")
+            new("Dashboard", "Tổng quan", "Tài khoản chưa có menu nghiệp vụ được cấu hình.", "AuthBLL")
         };
     }
 
@@ -320,16 +365,8 @@ public class FrmMain : Form
 
     private static string RoleDisplayName(string role)
     {
-        if (string.Equals(role, "TiepNhan", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Nhân viên tiếp nhận";
-        }
-
-        if (string.Equals(role, "BacSi", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Bác sĩ";
-        }
-
+        if (string.Equals(role, "TiepNhan", StringComparison.OrdinalIgnoreCase)) return "Nhân viên tiếp nhận";
+        if (string.Equals(role, "BacSi", StringComparison.OrdinalIgnoreCase)) return "Bác sĩ";
         return role;
     }
 

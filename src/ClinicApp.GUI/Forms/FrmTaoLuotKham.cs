@@ -1,312 +1,255 @@
-using System;
 using System.Data;
-using System.Drawing;
-using System.Windows.Forms;
 using ClinicApp.BLL;
 using ClinicApp.DTO;
 
 namespace ClinicApp.GUI.Forms;
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 public class FrmTaoLuotKham : Form
 {
     private readonly BenhNhanBLL _benhNhanBLL = new();
     private readonly LuotKhamBLL _luotKhamBLL = new();
+    private readonly TextBox _txtSearch = NativeUi.TextBox("Nhập tên bệnh nhân, SĐT hoặc CCCD...");
+    private readonly DataGridView _gridPatients = NativeUi.Grid();
+    private readonly DataGridView _gridQueue = NativeUi.Grid();
+    private readonly TextBox _txtGhiChu = NativeUi.MultilineTextBox("Nhập triệu chứng hoặc lý do khám...", 92);
+    private readonly Label _lblPatient = new()
+    {
+        Dock = DockStyle.Top,
+        Height = 76,
+        Font = UiTheme.SectionHeaderFont,
+        ForeColor = UiTheme.Primary,
+        Text = "Chưa chọn bệnh nhân",
+        TextAlign = ContentAlignment.MiddleLeft
+    };
 
-    private TextBox txtSearch;
-    private Button btnSearch;
-    private DataGridView dgvBenhNhan;
-    
-    private TextBox txtGhiChu;
-    private Button btnTaoLuot;
-    private Button btnHuyLuot;
-    private DataGridView dgvLuotKham;
-    
-    private DataTable _dtLuotKhamLocal;
-    private int _selectedMaBN = 0;
-    private string _selectedHoTen = "";
+    private readonly BindingSource _localQueue = new();
+    private BenhNhanDTO? _selectedPatient;
 
     public FrmTaoLuotKham()
     {
-        InitializeComponent();
-        SetupTheme();
-        InitLocalGrid();
+        UiTheme.ApplyForm(this);
+        Text = "Đăng ký lượt khám";
+        BuildLayout();
     }
 
-    private void InitializeComponent()
+    private void BuildLayout()
     {
-        this.Text = "Đăng ký lượt khám";
-        this.Size = new Size(1000, 650);
-        this.StartPosition = FormStartPosition.CenterParent;
+        var page = NativeUi.Page();
+        Controls.Add(page);
 
-        // Top Panel: Search and Patient Grid
-        var pnlTop = new Panel { Dock = DockStyle.Top, Height = 250, Padding = new Padding(10) };
-        
-        var lblSearch = new Label { Text = "Tìm BN:", AutoSize = true, Location = new Point(10, 15) };
-        txtSearch = new TextBox { Location = new Point(80, 12), Width = 250, PlaceholderText = "Tên, SĐT, CCCD..." };
-        btnSearch = new Button { Text = "Tìm", Location = new Point(340, 10), Width = 80, BackColor = Color.FromArgb(0, 85, 150), ForeColor = Color.White };
-        btnSearch.Click += BtnSearch_Click;
+        var searchCard = NativeUi.Card(DockStyle.Top, 74);
+        page.Controls.Add(searchCard);
 
-        dgvBenhNhan = new DataGridView
+        var toolbar = NativeUi.Toolbar();
+        _txtSearch.Width = 440;
+        _txtSearch.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter) SearchPatients(); };
+        var btnSearch = NativeUi.PrimaryButton("Tìm kiếm");
+        btnSearch.Width = 120;
+        btnSearch.Click += (_, _) => SearchPatients();
+        toolbar.Controls.Add(NativeUi.FieldLabel("Tìm bệnh nhân"));
+        toolbar.Controls.Add(_txtSearch);
+        toolbar.Controls.Add(btnSearch);
+        searchCard.Controls.Add(toolbar);
+
+        var split = new SplitContainer
         {
-            Location = new Point(10, 45),
-            Width = 960,
-            Height = 195,
-            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-            AllowUserToAddRows = false,
-            AllowUserToDeleteRows = false,
-            ReadOnly = true,
-            BackgroundColor = Color.White,
-            RowHeadersVisible = false
+            Dock = DockStyle.Fill,
+            Orientation = Orientation.Horizontal,
+            BackColor = UiTheme.Background
         };
-        dgvBenhNhan.CellClick += DgvBenhNhan_CellClick;
+        NativeUi.ConfigureSplitter(split, desiredDistance: 330, panel1MinSize: 220, panel2MinSize: 180);
+        page.Controls.Add(split);
+        split.BringToFront();
 
-        pnlTop.Controls.AddRange(new Control[] { lblSearch, txtSearch, btnSearch, dgvBenhNhan });
-
-        // Middle Panel: Actions
-        var pnlMid = new Panel { Dock = DockStyle.Top, Height = 80, Padding = new Padding(10) };
-        
-        var lblGhiChu = new Label { Text = "Ghi chú:", AutoSize = true, Location = new Point(10, 20) };
-        txtGhiChu = new TextBox { Location = new Point(80, 17), Width = 400 };
-        
-        btnTaoLuot = new Button { Text = "Tạo Lượt Khám", Location = new Point(500, 15), Width = 120, BackColor = Color.FromArgb(0, 85, 150), ForeColor = Color.White };
-        btnTaoLuot.Click += BtnTaoLuot_Click;
-
-        btnHuyLuot = new Button { Text = "Hủy Lượt Khám", Location = new Point(630, 15), Width = 120, BackColor = Color.IndianRed, ForeColor = Color.White };
-        btnHuyLuot.Click += BtnHuyLuot_Click;
-
-        pnlMid.Controls.AddRange(new Control[] { lblGhiChu, txtGhiChu, btnTaoLuot, btnHuyLuot });
-
-        // Bottom Panel: Local queue
-        var pnlBottom = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
-        var lblList = new Label { Text = "Các lượt khám vừa đăng ký:", AutoSize = true, Location = new Point(10, 0) };
-        
-        dgvLuotKham = new DataGridView
+        var topSplit = new SplitContainer
         {
-            Location = new Point(10, 25),
-            Width = 960,
-            Height = 250,
-            Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-            AllowUserToAddRows = false,
-            AllowUserToDeleteRows = false,
-            ReadOnly = true,
-            BackgroundColor = Color.White,
-            RowHeadersVisible = false
+            Dock = DockStyle.Fill,
+            FixedPanel = FixedPanel.Panel2
         };
-        
-        pnlBottom.Controls.AddRange(new Control[] { lblList, dgvLuotKham });
+        NativeUi.ConfigureSplitter(topSplit, desiredDistance: 650, panel1MinSize: 360, panel2MinSize: 300);
+        split.Panel1.Controls.Add(topSplit);
 
-        dgvLuotKham.CellFormatting += DgvLuotKham_CellFormatting;
+        var resultCard = NativeUi.Card(DockStyle.Fill);
+        topSplit.Panel1.Controls.Add(resultCard);
+        resultCard.Controls.Add(_gridPatients);
+        resultCard.Controls.Add(NativeUi.Section("Kết quả tìm kiếm"));
+        _gridPatients.SelectionChanged += (_, _) => SelectPatientFromGrid();
 
-        this.Controls.Add(pnlBottom);
-        this.Controls.Add(pnlMid);
-        this.Controls.Add(pnlTop);
-    }
-
-    private void SetupTheme()
-    {
-        this.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        this.BackColor = Color.FromArgb(245, 246, 250);
-    }
-
-    private void InitLocalGrid()
-    {
-        _dtLuotKhamLocal = new DataTable();
-        _dtLuotKhamLocal.Columns.Add("MaLK", typeof(int));
-        _dtLuotKhamLocal.Columns.Add("SoThuTu", typeof(int));
-        _dtLuotKhamLocal.Columns.Add("MaBN", typeof(int));
-        _dtLuotKhamLocal.Columns.Add("HoTen", typeof(string));
-        _dtLuotKhamLocal.Columns.Add("NgayKham", typeof(DateTime));
-        _dtLuotKhamLocal.Columns.Add("TrangThai", typeof(string));
-
-        dgvLuotKham.DataSource = _dtLuotKhamLocal;
-        FormatGridLuotKham();
-    }
-
-    private void FormatGridLuotKham()
-    {
-        SetHeader(dgvLuotKham, "MaLK", "Mã LK");
-        SetHeader(dgvLuotKham, "SoThuTu", "STT");
-        SetHeader(dgvLuotKham, "MaBN", "Mã BN");
-        SetHeader(dgvLuotKham, "HoTen", "Họ Tên");
-        SetHeader(dgvLuotKham, "NgayKham", "Ngày Khám");
-        SetHeader(dgvLuotKham, "TrangThai", "Trạng Thái");
-    }
-
-    private void DgvLuotKham_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
-    {
-        if (dgvLuotKham.Columns[e.ColumnIndex].Name == "TrangThai" && e.Value is string status)
+        var actionCard = NativeUi.Card(DockStyle.Fill);
+        topSplit.Panel2.Controls.Add(actionCard);
+        actionCard.Controls.Add(new Label
         {
-            e.Value = status switch
-            {
-                "DangCho" => "Đang chờ",
-                "DangKham" => "Đang khám",
-                "DaKham" => "Đã khám",
-                "DaHuy" => "Đã hủy",
-                _ => status
-            };
-            e.FormattingApplied = true;
-        }
+            Dock = DockStyle.Top,
+            Height = 26,
+            Text = "Thông tin lượt khám",
+            Font = UiTheme.SectionHeaderFont,
+            ForeColor = UiTheme.Primary
+        });
+        actionCard.Controls.Add(_lblPatient);
+        actionCard.Controls.Add(NativeUi.Field("Ghi chú / lý do khám", _txtGhiChu));
+
+        var btnCreate = NativeUi.PrimaryButton("Đăng ký khám");
+        btnCreate.Dock = DockStyle.Top;
+        btnCreate.Click += (_, _) => CreateVisit();
+        actionCard.Controls.Add(btnCreate);
+
+        var btnCancel = NativeUi.DangerButton("Hủy lượt đã chọn");
+        btnCancel.Dock = DockStyle.Top;
+        btnCancel.Margin = new Padding(0, 8, 0, 0);
+        btnCancel.Click += (_, _) => CancelSelectedVisit();
+        actionCard.Controls.Add(btnCancel);
+
+        var queueCard = NativeUi.Card(DockStyle.Fill);
+        split.Panel2.Controls.Add(queueCard);
+        queueCard.Controls.Add(_gridQueue);
+        queueCard.Controls.Add(NativeUi.Section("Các lượt khám vừa đăng ký"));
+        _gridQueue.DataSource = _localQueue;
     }
 
-    private void BtnSearch_Click(object? sender, EventArgs e)
+    private void SearchPatients()
     {
         try
         {
-            var dt = _benhNhanBLL.TimBenhNhan(txtSearch.Text.Trim());
-            if (dt == null)
+            DataTable table = _benhNhanBLL.TimBenhNhan(_txtSearch.Text);
+            _gridPatients.DataSource = table;
+            ConfigurePatientGrid();
+            if (table.Rows.Count == 0)
             {
-                MessageBox.Show("Không thể tải danh sách bệnh nhân.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                dgvBenhNhan.DataSource = null;
-            }
-            else
-            {
-                dgvBenhNhan.DataSource = dt;
-                FormatGridBenhNhan();
-                if (dt.Rows.Count == 0 && !string.IsNullOrWhiteSpace(txtSearch.Text.Trim()))
-                {
-                    MessageBox.Show("Không tìm thấy bệnh nhân nào phù hợp.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
+                NativeUi.ShowInfo("Không tìm thấy bệnh nhân nào.");
             }
         }
-        catch
+        catch (Exception ex)
         {
-            MessageBox.Show("Đã xảy ra lỗi khi tìm kiếm.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            NativeUi.ShowError("Không tìm kiếm được bệnh nhân.\n" + ex.Message);
         }
     }
 
-    private void FormatGridBenhNhan()
+    private void ConfigurePatientGrid()
     {
-        SetHeader(dgvBenhNhan, "MaBN", "Mã BN");
-        SetHeader(dgvBenhNhan, "HoTen", "Họ Tên");
-        SetHeader(dgvBenhNhan, "NgaySinh", "Ngày Sinh");
-        SetHeader(dgvBenhNhan, "GioiTinh", "Giới Tính");
-        SetHeader(dgvBenhNhan, "SDT", "SĐT");
-        SetHeader(dgvBenhNhan, "CCCD", "CCCD");
-        SetHeader(dgvBenhNhan, "DiaChi", "Địa Chỉ");
-        SetHeader(dgvBenhNhan, "TrangThaiGanNhat", "Trạng Thái");
+        if (_gridPatients.Columns.Count == 0) return;
+        Header(_gridPatients, "MaBN", "Mã BN", 70);
+        Header(_gridPatients, "HoTen", "Họ tên", 180);
+        Header(_gridPatients, "SDT", "SĐT", 110);
+        Header(_gridPatients, "NgaySinh", "Ngày sinh", 90);
+        Header(_gridPatients, "GioiTinh", "Giới tính", 80);
+        Header(_gridPatients, "DiaChi", "Địa chỉ", 220);
     }
 
-    private void DgvBenhNhan_CellClick(object? sender, DataGridViewCellEventArgs e)
+    private static void Header(DataGridView grid, string name, string text, int width)
     {
-        if (e.RowIndex >= 0 && e.RowIndex < dgvBenhNhan.Rows.Count)
+        if (!grid.Columns.Contains(name)) return;
+        grid.Columns[name].HeaderText = text;
+        grid.Columns[name].Width = width;
+    }
+
+    private void SelectPatientFromGrid()
+    {
+        if (_gridPatients.CurrentRow?.DataBoundItem is not DataRowView view) return;
+        DataRow row = view.Row;
+        _selectedPatient = new BenhNhanDTO
         {
-            var row = dgvBenhNhan.Rows[e.RowIndex];
-            _selectedMaBN = ReadCellInt(row, "MaBN");
-            _selectedHoTen = ReadCellString(row, "HoTen");
-        }
+            MaBN = NativeUi.IntOf(row, "MaBN"),
+            HoTen = NativeUi.TextOf(row, "HoTen"),
+            NgaySinh = NativeUi.DateOf(row, "NgaySinh"),
+            GioiTinh = NativeUi.TextOf(row, "GioiTinh"),
+            SDT = NativeUi.TextOf(row, "SDT"),
+            CCCD = NativeUi.TextOf(row, "CCCD"),
+            DiaChi = NativeUi.TextOf(row, "DiaChi")
+        };
+
+        _lblPatient.Text =
+            $"{_selectedPatient.HoTen}\nMã BN: {_selectedPatient.MaBN} | SĐT: {_selectedPatient.SDT} | " +
+            $"Ngày sinh: {(_selectedPatient.NgaySinh.HasValue ? _selectedPatient.NgaySinh.Value.ToString("dd/MM/yyyy") : "--")}";
     }
 
-    private static object? ReadCellValue(DataGridViewRow row, string columnName)
+    private void CreateVisit()
     {
-        DataGridView? grid = row.DataGridView;
-        if (grid is null || !grid.Columns.Contains(columnName))
+        if (_selectedPatient == null)
         {
-            return null;
-        }
-
-        return row.Cells[columnName]?.Value;
-    }
-
-    private static string ReadCellString(DataGridViewRow row, string columnName, string fallback = "")
-    {
-        object? value = ReadCellValue(row, columnName);
-        return value is null || value == DBNull.Value ? fallback : value.ToString() ?? fallback;
-    }
-
-    private static int ReadCellInt(DataGridViewRow row, string columnName)
-    {
-        object? value = ReadCellValue(row, columnName);
-        return value is null || value == DBNull.Value ? 0 : Convert.ToInt32(value);
-    }
-
-    private static void SetHeader(DataGridView grid, string columnName, string headerText)
-    {
-        if (grid.Columns.Contains(columnName) && grid.Columns[columnName] is DataGridViewColumn column)
-        {
-            column.HeaderText = headerText;
-        }
-    }
-
-    private void BtnTaoLuot_Click(object? sender, EventArgs e)
-    {
-        if (_selectedMaBN <= 0)
-        {
-            MessageBox.Show("Vui lòng chọn một bệnh nhân để tạo lượt khám.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            NativeUi.ShowError("Vui lòng chọn một bệnh nhân.");
             return;
         }
 
         try
         {
-            // Null cho maBacSi vi day la dang ky tu tiep nhan
-            var lk = _luotKhamBLL.TaoLuotKham(_selectedMaBN, null, txtGhiChu.Text.Trim());
-            
-            if (lk != null)
+            LuotKhamDTO? visit = _luotKhamBLL.TaoLuotKham(_selectedPatient.MaBN, null, _txtGhiChu.Text);
+            if (visit == null)
             {
-                MessageBox.Show($"Tạo lượt khám thành công!\nSố thứ tự: {lk.SoThuTu}", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                
-                // Add to local grid
-                _dtLuotKhamLocal.Rows.Add(lk.MaLK, lk.SoThuTu, lk.MaBN, _selectedHoTen, lk.NgayKham, lk.TrangThai);
-                txtGhiChu.Clear();
+                NativeUi.ShowError("Không thể tạo lượt khám.");
+                return;
             }
-            else
+
+            var rows = _localQueue.DataSource as List<LocalVisit> ?? new List<LocalVisit>();
+            rows.Insert(0, new LocalVisit
             {
-                MessageBox.Show("Không thể tạo lượt khám. Vui lòng thử lại.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                MaLK = visit.MaLK,
+                SoThuTu = visit.SoThuTu,
+                MaBN = visit.MaBN,
+                HoTen = _selectedPatient.HoTen,
+                NgayKham = visit.NgayKham,
+                TrangThai = NativeUi.StatusText(visit.TrangThai)
+            });
+
+            _localQueue.DataSource = rows;
+            _localQueue.ResetBindings(false);
+            ConfigureQueueGrid();
+            _txtGhiChu.Clear();
+            NativeUi.ShowInfo($"Tạo lượt khám thành công. Số thứ tự: {visit.SoThuTu}");
         }
-        catch
+        catch (Exception ex)
         {
-            MessageBox.Show("Lỗi khi tạo lượt khám. Có thể CSDL chưa sẵn sàng.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            NativeUi.ShowError("Không thể tạo lượt khám.\n" + ex.Message);
         }
     }
 
-    private void BtnHuyLuot_Click(object? sender, EventArgs e)
+    private void CancelSelectedVisit()
     {
-        if (dgvLuotKham.SelectedRows.Count == 0)
+        if (_gridQueue.CurrentRow?.DataBoundItem is not LocalVisit visit)
         {
-            MessageBox.Show("Vui lòng chọn lượt khám cần hủy.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            NativeUi.ShowError("Chọn lượt khám cần hủy từ bảng bên dưới.");
             return;
         }
 
-        var row = dgvLuotKham.SelectedRows[0];
-        int maLK = ReadCellInt(row, "MaLK");
-        string trangThai = ReadCellString(row, "TrangThai");
-
-        if (maLK <= 0)
+        if (visit.TrangThai != "Đang chờ")
         {
-            MessageBox.Show("Không xác định được lượt khám cần hủy.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            NativeUi.ShowError("Chỉ hủy được lượt khám đang chờ.");
             return;
         }
 
-        if (trangThai != "DangCho")
+        if (MessageBox.Show("Bạn có chắc chắn muốn hủy lượt khám này?", "Xác nhận",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
         {
-            MessageBox.Show("Chỉ có thể hủy lượt khám đang ở trạng thái chờ.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
-        if (MessageBox.Show("Bạn có chắc chắn muốn hủy lượt khám này?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+        if (!_luotKhamBLL.HuyLuotKham(visit.MaLK))
         {
-            try
-            {
-                bool success = _luotKhamBLL.HuyLuotKham(maLK);
-                if (success)
-                {
-                    MessageBox.Show("Đã hủy lượt khám.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    row.Cells["TrangThai"].Value = "DaHuy";
-                }
-                else
-                {
-                    MessageBox.Show("Hủy lượt khám thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            catch
-            {
-                MessageBox.Show("Lỗi khi hủy lượt khám.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            NativeUi.ShowError("Hủy lượt khám thất bại.");
+            return;
         }
+
+        visit.TrangThai = "Đã hủy";
+        _localQueue.ResetBindings(false);
+        NativeUi.ShowInfo("Đã hủy lượt khám thành công.");
+    }
+
+    private void ConfigureQueueGrid()
+    {
+        Header(_gridQueue, nameof(LocalVisit.MaLK), "Mã LK", 70);
+        Header(_gridQueue, nameof(LocalVisit.SoThuTu), "STT", 60);
+        Header(_gridQueue, nameof(LocalVisit.MaBN), "Mã BN", 70);
+        Header(_gridQueue, nameof(LocalVisit.HoTen), "Họ tên", 180);
+        Header(_gridQueue, nameof(LocalVisit.NgayKham), "Ngày khám", 150);
+        Header(_gridQueue, nameof(LocalVisit.TrangThai), "Trạng thái", 100);
+    }
+
+    private sealed class LocalVisit
+    {
+        public int MaLK { get; set; }
+        public int SoThuTu { get; set; }
+        public int MaBN { get; set; }
+        public string HoTen { get; set; } = "";
+        public DateTime NgayKham { get; set; }
+        public string TrangThai { get; set; } = "";
     }
 }

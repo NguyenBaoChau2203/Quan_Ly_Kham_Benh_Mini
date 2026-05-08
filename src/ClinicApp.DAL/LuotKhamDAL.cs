@@ -15,7 +15,8 @@ public class LuotKhamDAL
             new SqlParameter("@MaBacSi", SqlDbType.Int) { Value = maBacSi.HasValue ? maBacSi.Value : DBNull.Value },
             new SqlParameter("@GhiChu", SqlDbType.NVarChar, 500) { Value = string.IsNullOrWhiteSpace(ghiChu) ? DBNull.Value : ghiChu.Trim() },
             new SqlParameter("@MaLK", SqlDbType.Int) { Direction = ParameterDirection.Output },
-            new SqlParameter("@SoThuTu", SqlDbType.Int) { Direction = ParameterDirection.Output }
+            new SqlParameter("@SoThuTu", SqlDbType.Int) { Direction = ParameterDirection.Output },
+            new SqlParameter("@NgayKham", SqlDbType.DateTime) { Direction = ParameterDirection.Output }
         };
 
         DataProvider.Instance.ExecuteNonQuerySP("sp_TaoLuotKham", parameters);
@@ -25,20 +26,7 @@ public class LuotKhamDAL
 
         if (maLK <= 0) return null;
 
-        DateTime ngayKham = DateTime.Now;
-        try
-        {
-            var dt = DataProvider.Instance.ExecuteQuery(
-                "SELECT NgayKham FROM LuotKham WHERE MaLK = @MaLK",
-                new[] { new SqlParameter("@MaLK", SqlDbType.Int) { Value = maLK } });
-            if (dt != null && dt.Rows.Count > 0 && dt.Rows[0]["NgayKham"] != DBNull.Value)
-            {
-                ngayKham = Convert.ToDateTime(dt.Rows[0]["NgayKham"]);
-            }
-        }
-        catch
-        {
-        }
+        DateTime ngayKham = parameters[5].Value != DBNull.Value ? Convert.ToDateTime(parameters[5].Value) : DateTime.Now;
 
         return new LuotKhamDTO
         {

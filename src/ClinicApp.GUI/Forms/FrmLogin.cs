@@ -1,262 +1,203 @@
 using ClinicApp.BLL;
 using ClinicApp.DTO;
-using ClinicApp.GUI;
 
 namespace ClinicApp.GUI.Forms;
 
 public class FrmLogin : Form
 {
     private readonly AuthBLL _authBLL = new();
-    private readonly TextBox _usernameTextBox = new();
-    private readonly TextBox _passwordTextBox = new();
-    private readonly Button _loginButton = new();
-    private readonly Label _messageLabel = new();
+    private readonly TextBox _txtUsername = NativeUi.TextBox("Tên đăng nhập");
+    private readonly TextBox _txtPassword = NativeUi.TextBox("Mật khẩu");
+    private readonly Label _lblMessage = new()
+    {
+        Dock = DockStyle.Top,
+        Height = 24,
+        ForeColor = UiTheme.Error,
+        Font = UiTheme.LabelFont,
+        TextAlign = ContentAlignment.MiddleLeft
+    };
 
     public FrmLogin()
     {
         UiTheme.ApplyForm(this);
-
-        Text = "Đăng nhập hệ thống";
+        Text = "Đăng nhập hệ thống - Mini Clinic";
         StartPosition = FormStartPosition.CenterScreen;
-        MinimumSize = new Size(920, 560);
-        Size = new Size(960, 600);
+        MinimumSize = new Size(980, 600);
+        Size = new Size(1120, 660);
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
 
         BuildLayout();
-
-        AcceptButton = _loginButton;
-        Shown += (_, _) => _usernameTextBox.Focus();
+        AcceptButton = Controls.Find("btnLogin", true).OfType<Button>().FirstOrDefault();
+        CancelButton = Controls.Find("btnExit", true).OfType<Button>().FirstOrDefault();
     }
 
     private void BuildLayout()
     {
-        var shell = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            BackColor = UiTheme.Background,
-            ColumnCount = 2,
-            RowCount = 1
-        };
-        shell.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 360F));
-        shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        Controls.Add(shell);
+        var page = NativeUi.Page();
+        page.Padding = new Padding(0);
+        Controls.Add(page);
 
-        shell.Controls.Add(BuildBrandPanel(), 0, 0);
-        shell.Controls.Add(BuildLoginPanel(), 1, 0);
-    }
-
-    private static Control BuildBrandPanel()
-    {
-        var brandPanel = new Panel
-        {
-            BackColor = UiTheme.Primary,
-            Dock = DockStyle.Fill,
-            Padding = new Padding(28, 32, 28, 32)
-        };
-
-        var footer = new Label
-        {
-            Dock = DockStyle.Bottom,
-            Height = 48,
-            Font = UiTheme.SmallFont,
-            ForeColor = Color.White,
-            Text = "WinForms + SQL Server\nGUI → BLL → DAL",
-            TextAlign = ContentAlignment.BottomLeft
-        };
-
-        var subtitle = new Label
+        var header = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 72,
-            Font = UiTheme.BodyFont,
-            ForeColor = Color.White,
-            Text = "Quản lý khám bệnh mini với giao diện gọn, rõ và đúng vai trò.",
-            TextAlign = ContentAlignment.TopLeft
+            Height = 56,
+            BackColor = UiTheme.SurfaceContainerLowest,
+            Padding = new Padding(18, 0, 18, 0)
         };
+        page.Controls.Add(header);
 
-        var title = new Label
+        header.Controls.Add(new Label
         {
-            Dock = DockStyle.Top,
-            Height = 72,
-            Font = new Font("Segoe UI", 20F, FontStyle.Bold),
-            ForeColor = Color.White,
-            Text = "Mini Clinic",
-            TextAlign = ContentAlignment.BottomLeft
-        };
-
-        var badge = new Label
-        {
-            Dock = DockStyle.Top,
-            Height = 28,
-            Font = UiTheme.LabelFont,
-            ForeColor = Color.White,
-            Text = "CLINICAL PRECISION",
+            Dock = DockStyle.Left,
+            Width = 420,
+            Text = "Mini Clinic Management",
+            Font = new Font("Segoe UI", 15F, FontStyle.Bold),
+            ForeColor = UiTheme.Primary,
             TextAlign = ContentAlignment.MiddleLeft
-        };
+        });
+        header.Controls.Add(new Label
+        {
+            Dock = DockStyle.Right,
+            Width = 160,
+            Text = "Version 2.4.0",
+            Font = UiTheme.LabelFont,
+            ForeColor = UiTheme.MutedText,
+            TextAlign = ContentAlignment.MiddleRight
+        });
 
-        brandPanel.Controls.Add(footer);
-        brandPanel.Controls.Add(subtitle);
-        brandPanel.Controls.Add(title);
-        brandPanel.Controls.Add(badge);
-
-        return brandPanel;
-    }
-
-    private Control BuildLoginPanel()
-    {
         var center = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            BackColor = UiTheme.Background,
             ColumnCount = 3,
-            RowCount = 3
+            RowCount = 3,
+            BackColor = UiTheme.Background
         };
-        center.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-        center.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 420F));
-        center.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-        center.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-        center.RowStyles.Add(new RowStyle(SizeType.Absolute, 360F));
-        center.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+        center.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        center.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 420));
+        center.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        center.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+        center.RowStyles.Add(new RowStyle(SizeType.Absolute, 360));
+        center.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+        page.Controls.Add(center);
 
-        var card = new Panel
-        {
-            BackColor = UiTheme.Surface,
-            BorderStyle = BorderStyle.FixedSingle,
-            Dock = DockStyle.Fill,
-            Padding = new Padding(26, 24, 26, 24)
-        };
-
-        var layout = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            ColumnCount = 1,
-            RowCount = 9
-        };
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 22F));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 22F));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 44F));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
-        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-        card.Controls.Add(layout);
-
-        var title = UiTheme.CreateLabel("Đăng nhập", UiTheme.ScreenHeaderFont);
-        var subtitle = UiTheme.CreateLabel("Sử dụng tài khoản demo hoặc tài khoản đã được cấp quyền.", UiTheme.BodyFont, UiTheme.MutedText);
-        var usernameLabel = UiTheme.CreateLabel("TÊN ĐĂNG NHẬP", UiTheme.LabelFont, UiTheme.MutedText);
-        var passwordLabel = UiTheme.CreateLabel("MẬT KHẨU", UiTheme.LabelFont, UiTheme.MutedText);
-
-        ConfigureInput(_usernameTextBox, "tiepnhan");
-        ConfigureInput(_passwordTextBox, "123");
-        _passwordTextBox.UseSystemPasswordChar = true;
-
-        _messageLabel.Dock = DockStyle.Fill;
-        _messageLabel.Font = UiTheme.SmallFont;
-        _messageLabel.ForeColor = UiTheme.Error;
-        _messageLabel.TextAlign = ContentAlignment.MiddleLeft;
-
-        _loginButton.Text = "Đăng nhập";
-        _loginButton.Dock = DockStyle.Fill;
-        _loginButton.Click += LoginButton_Click;
-        UiTheme.ApplyPrimaryButton(_loginButton);
-
-        layout.Controls.Add(title, 0, 0);
-        layout.Controls.Add(subtitle, 0, 1);
-        layout.Controls.Add(usernameLabel, 0, 2);
-        layout.Controls.Add(_usernameTextBox, 0, 3);
-        layout.Controls.Add(passwordLabel, 0, 4);
-        layout.Controls.Add(_passwordTextBox, 0, 5);
-        layout.Controls.Add(_messageLabel, 0, 6);
-        layout.Controls.Add(_loginButton, 0, 7);
-
+        var card = NativeUi.Card(DockStyle.Fill);
+        card.Padding = new Padding(24);
         center.Controls.Add(card, 1, 1);
-        return center;
-    }
 
-    private static void ConfigureInput(TextBox textBox, string placeholderText)
-    {
-        UiTheme.ApplyTextBox(textBox);
-        textBox.Dock = DockStyle.Fill;
-        textBox.PlaceholderText = placeholderText;
-    }
-
-    private void LoginButton_Click(object? sender, EventArgs e)
-    {
-        ClearMessage();
-
-        if (string.IsNullOrWhiteSpace(_usernameTextBox.Text))
+        card.Controls.Add(new Label
         {
-            ShowError("Vui lòng nhập tên đăng nhập.");
-            _usernameTextBox.Focus();
+            Dock = DockStyle.Top,
+            Height = 42,
+            Text = "Đăng nhập hệ thống",
+            Font = new Font("Segoe UI", 16F, FontStyle.Bold),
+            ForeColor = UiTheme.Primary,
+            TextAlign = ContentAlignment.MiddleLeft
+        });
+
+        _txtUsername.Text = "bacsi";
+        _txtPassword.Text = "123";
+        _txtPassword.UseSystemPasswordChar = true;
+
+        var btnLogin = NativeUi.PrimaryButton("Đăng nhập");
+        btnLogin.Name = "btnLogin";
+        btnLogin.Click += (_, _) => Login();
+
+        var btnExit = NativeUi.SecondaryButton("Thoát");
+        btnExit.Name = "btnExit";
+        btnExit.Click += (_, _) => Application.Exit();
+
+        var buttons = new TableLayoutPanel { Dock = DockStyle.Top, Height = 42, ColumnCount = 2 };
+        buttons.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 65));
+        buttons.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35));
+        buttons.Controls.Add(btnLogin, 0, 0);
+        buttons.Controls.Add(btnExit, 1, 0);
+        btnLogin.Dock = DockStyle.Fill;
+        btnExit.Dock = DockStyle.Fill;
+        btnExit.Margin = new Padding(8, 0, 0, 0);
+
+        var remember = new CheckBox
+        {
+            Dock = DockStyle.Top,
+            Height = 28,
+            Text = "Ghi nhớ đăng nhập",
+            Font = UiTheme.SmallFont,
+            ForeColor = UiTheme.MutedText
+        };
+
+        card.Controls.Add(remember);
+        card.Controls.Add(buttons);
+        card.Controls.Add(_lblMessage);
+        card.Controls.Add(NativeUi.Field("Mật khẩu", _txtPassword));
+        card.Controls.Add(NativeUi.Field("Tên đăng nhập", _txtUsername));
+        card.Controls.Add(new Label
+        {
+            Dock = DockStyle.Top,
+            Height = 46,
+            Text = "Sử dụng tài khoản được cấp để vào hệ thống quản lý khám bệnh.",
+            Font = UiTheme.BodyFont,
+            ForeColor = UiTheme.MutedText
+        });
+
+        var footer = new Panel
+        {
+            Dock = DockStyle.Bottom,
+            Height = 30,
+            BackColor = UiTheme.SurfaceContainerLow,
+            Padding = new Padding(16, 0, 16, 0)
+        };
+        page.Controls.Add(footer);
+        footer.Controls.Add(new Label
+        {
+            Dock = DockStyle.Left,
+            Width = 360,
+            Text = "Hệ thống: Sẵn sàng",
+            Font = UiTheme.SmallFont,
+            ForeColor = UiTheme.MutedText,
+            TextAlign = ContentAlignment.MiddleLeft
+        });
+    }
+
+    private void Login()
+    {
+        _lblMessage.Text = string.Empty;
+
+        string username = _txtUsername.Text.Trim();
+        string password = _txtPassword.Text.Trim();
+        if (username.Length == 0 || password.Length == 0)
+        {
+            _lblMessage.Text = "Vui lòng nhập tài khoản và mật khẩu.";
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(_passwordTextBox.Text))
+        NhanVienDTO? user = _authBLL.DangNhap(username, password);
+        if (user == null)
         {
-            ShowError("Vui lòng nhập mật khẩu.");
-            _passwordTextBox.Focus();
+            _lblMessage.Text = "Tài khoản hoặc mật khẩu không đúng.";
+            _txtPassword.SelectAll();
+            _txtPassword.Focus();
             return;
         }
 
-        _loginButton.Enabled = false;
-        UseWaitCursor = true;
-
-        try
+        if (!string.Equals(user.Role, "TiepNhan", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(user.Role, "BacSi", StringComparison.OrdinalIgnoreCase))
         {
-            NhanVienDTO? user = _authBLL.DangNhap(_usernameTextBox.Text, _passwordTextBox.Text);
-            if (user is null)
-            {
-                ShowError("Không đăng nhập được. Vui lòng kiểm tra tài khoản, mật khẩu hoặc kết nối dữ liệu.");
-                _passwordTextBox.SelectAll();
-                _passwordTextBox.Focus();
-                return;
-            }
-
-            if (!IsSupportedRole(user.Role))
-            {
-                ShowError("Tài khoản chưa được phân quyền dùng phiên bản demo.");
-                return;
-            }
-
-            OpenMainShell(user);
+            _lblMessage.Text = "Tài khoản chưa được phân quyền.";
+            return;
         }
-        finally
-        {
-            UseWaitCursor = false;
-            _loginButton.Enabled = true;
-        }
+
+        OpenMainShell(user);
     }
 
     private void OpenMainShell(NhanVienDTO user)
     {
         Hide();
-
         using var mainForm = new FrmMain(user);
-        mainForm.ShowDialog();
+        mainForm.ShowDialog(this);
 
-        _passwordTextBox.Clear();
-        ClearMessage();
+        _txtPassword.Clear();
         Show();
         Activate();
-        _usernameTextBox.Focus();
-    }
-
-    private static bool IsSupportedRole(string role)
-    {
-        return string.Equals(role, "TiepNhan", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(role, "BacSi", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private void ShowError(string message)
-    {
-        _messageLabel.Text = message;
-    }
-
-    private void ClearMessage()
-    {
-        _messageLabel.Text = string.Empty;
+        _txtUsername.Focus();
     }
 }

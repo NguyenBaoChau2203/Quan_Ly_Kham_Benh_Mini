@@ -1,7 +1,7 @@
 namespace ClinicApp.GUI;
 
 using System.Configuration;
-using ClinicApp.DAL;
+using ClinicApp.BLL;
 using ClinicApp.GUI.Forms;
 
 static class Program
@@ -12,7 +12,7 @@ static class Program
     [STAThread]
     static void Main()
     {
-        // Đọc connection string từ App.config và set cho DataProvider
+        // Đọc connection string từ App.config và set qua BLL
         string? connStr = ConfigurationManager.ConnectionStrings["ClinicAppDB"]?.ConnectionString;
         if (string.IsNullOrEmpty(connStr))
         {
@@ -23,25 +23,19 @@ static class Program
                 MessageBoxIcon.Error);
             return;
         }
-        DataProvider.Instance.ConnectionString = connStr;
 
-        try
-        {
-            using var conn = new Microsoft.Data.SqlClient.SqlConnection(connStr);
-            conn.Open();
-        }
-        catch (Exception ex)
+        AppBootstrap.Initialize(connStr);
+
+        if (!AppBootstrap.TestConnection(connStr, out string errorMessage))
         {
             MessageBox.Show(
-                $"Không thể kết nối CSDL. Vui lòng kiểm tra lại cấu hình SQL Server.\nChi tiết: {ex.Message}",
+                $"Không thể kết nối CSDL. Vui lòng kiểm tra lại cấu hình SQL Server.\nChi tiết: {errorMessage}",
                 "Lỗi kết nối",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
             return;
         }
 
-        // To customize application configuration such as set high DPI settings or default font,
-        // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
         Application.Run(new FrmLogin());
     }

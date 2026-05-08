@@ -1,328 +1,255 @@
-using System;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Windows.Forms;
 using ClinicApp.BLL;
 using ClinicApp.DTO;
 
 namespace ClinicApp.GUI.Forms;
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-public class FrmBenhNhan : Form // Use Form instead of PlaceholderForm if we design it fully
-
+public class FrmBenhNhan : Form
 {
     private readonly BenhNhanBLL _benhNhanBLL = new();
-    
-    // UI Controls
-    private TextBox txtSearch;
-    private Button btnSearch;
-    private DataGridView dgvBenhNhan;
-    
-    private TextBox txtHoTen;
-    private DateTimePicker dtpNgaySinh;
-    private CheckBox chkNgaySinh;
-    private ComboBox cmbGioiTinh;
-    private TextBox txtSDT;
-    private TextBox txtCCCD;
-    private TextBox txtDiaChi;
-    
-    private Button btnThem;
-    private Button btnSua;
-    private Button btnLamMoi;
-    
-    private int _currentMaBN = 0;
+    private readonly TextBox _txtSearchName = NativeUi.TextBox("Nhập tên bệnh nhân...");
+    private readonly TextBox _txtSearchPhone = NativeUi.TextBox("09xx...");
+    private readonly TextBox _txtSearchId = NativeUi.TextBox("Nhập số CCCD...");
+    private readonly DataGridView _grid = NativeUi.Grid();
+    private readonly TextBox _txtHoTen = NativeUi.TextBox();
+    private readonly DateTimePicker _dtpNgaySinh = new();
+    private readonly CheckBox _chkNgaySinh = new() { Text = "Có ngày sinh", Checked = true, Height = 22, Dock = DockStyle.Top };
+    private readonly ComboBox _cmbGioiTinh = new() { DropDownStyle = ComboBoxStyle.DropDownList };
+    private readonly TextBox _txtSDT = NativeUi.TextBox();
+    private readonly TextBox _txtCCCD = NativeUi.TextBox();
+    private readonly TextBox _txtDiaChi = NativeUi.MultilineTextBox(height: 78);
+    private readonly Label _lblFooter = new() { Dock = DockStyle.Bottom, Height = 28, ForeColor = UiTheme.MutedText, Font = UiTheme.SmallFont };
+
+    private int _currentMaBN;
 
     public FrmBenhNhan()
     {
-        InitializeComponent();
-        SetupTheme();
-        Load += (_, _) => LoadData();
+        UiTheme.ApplyForm(this);
+        Text = "Quản lý bệnh nhân";
+        BuildLayout();
+        Load += (_, _) => { ResetForm(); LoadPatients(); };
     }
 
-    private void InitializeComponent()
+    private void BuildLayout()
     {
-        this.Text = "Quản lý bệnh nhân";
-        this.Size = new Size(1000, 600);
-        this.StartPosition = FormStartPosition.CenterParent;
+        var page = NativeUi.Page();
+        Controls.Add(page);
 
-        // Top Panel for Search
-        var pnlTop = new Panel { Dock = DockStyle.Top, Height = 60, Padding = new Padding(10) };
-        var lblSearch = new Label { Text = "Tìm kiếm:", AutoSize = true, Location = new Point(10, 20) };
-        txtSearch = new TextBox { Location = new Point(80, 17), Width = 300, PlaceholderText = "Tên, SĐT, CCCD..." };
-        btnSearch = new Button { Text = "Tìm", Location = new Point(390, 15), Width = 80, BackColor = Color.FromArgb(0, 85, 150), ForeColor = Color.White };
-        btnSearch.Click += BtnSearch_Click;
-        pnlTop.Controls.AddRange(new Control[] { lblSearch, txtSearch, btnSearch });
+        var searchCard = NativeUi.Card(DockStyle.Top, height: 104);
+        page.Controls.Add(searchCard);
 
-        // Right Panel for Form
-        var pnlRight = new Panel { Dock = DockStyle.Right, Width = 350, Padding = new Padding(10) };
-        
-        int y = 20;
-        int spacing = 40;
-        
-        pnlRight.Controls.Add(new Label { Text = "Họ Tên (*):", Location = new Point(10, y), AutoSize = true });
-        txtHoTen = new TextBox { Location = new Point(100, y), Width = 230 };
-        y += spacing;
-        
-        chkNgaySinh = new CheckBox { Text = "Ngày Sinh:", Location = new Point(10, y), AutoSize = true, Checked = true };
-        chkNgaySinh.CheckedChanged += (s, e) => dtpNgaySinh.Enabled = chkNgaySinh.Checked;
-        dtpNgaySinh = new DateTimePicker { Location = new Point(100, y), Width = 230, Format = DateTimePickerFormat.Short };
-        y += spacing;
-
-        pnlRight.Controls.Add(new Label { Text = "Giới Tính:", Location = new Point(10, y), AutoSize = true });
-        cmbGioiTinh = new ComboBox { Location = new Point(100, y), Width = 230, DropDownStyle = ComboBoxStyle.DropDownList };
-        cmbGioiTinh.Items.AddRange(new[] { "Nam", "Nữ" });
-        cmbGioiTinh.SelectedIndex = 0;
-        y += spacing;
-
-        pnlRight.Controls.Add(new Label { Text = "SĐT (*):", Location = new Point(10, y), AutoSize = true });
-        txtSDT = new TextBox { Location = new Point(100, y), Width = 230 };
-        y += spacing;
-
-        pnlRight.Controls.Add(new Label { Text = "CCCD:", Location = new Point(10, y), AutoSize = true });
-        txtCCCD = new TextBox { Location = new Point(100, y), Width = 230 };
-        y += spacing;
-
-        pnlRight.Controls.Add(new Label { Text = "Địa Chỉ:", Location = new Point(10, y), AutoSize = true });
-        txtDiaChi = new TextBox { Location = new Point(100, y), Width = 230, Multiline = true, Height = 60 };
-        y += 80;
-
-        btnThem = new Button { Text = "Thêm", Location = new Point(40, y), Width = 80, BackColor = Color.FromArgb(0, 85, 150), ForeColor = Color.White };
-        btnSua = new Button { Text = "Cập Nhật", Location = new Point(130, y), Width = 80, BackColor = Color.FromArgb(0, 85, 150), ForeColor = Color.White };
-        btnLamMoi = new Button { Text = "Làm Mới", Location = new Point(220, y), Width = 80 };
-        
-        btnThem.Click += BtnThem_Click;
-        btnSua.Click += BtnSua_Click;
-        btnLamMoi.Click += (s, e) => ResetForm();
-
-        pnlRight.Controls.AddRange(new Control[] {
-            txtHoTen, chkNgaySinh, dtpNgaySinh, cmbGioiTinh, txtSDT, txtCCCD, txtDiaChi,
-            btnThem, btnSua, btnLamMoi
-        });
-
-        // Center Panel for Grid
-        var pnlCenter = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
-        dgvBenhNhan = new DataGridView
+        var searchGrid = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-            AllowUserToAddRows = false,
-            AllowUserToDeleteRows = false,
-            ReadOnly = true,
-            BackgroundColor = Color.White,
-            RowHeadersVisible = false
+            ColumnCount = 5,
+            RowCount = 1,
+            Padding = new Padding(8, 0, 8, 0)
         };
-        dgvBenhNhan.CellClick += DgvBenhNhan_CellClick;
-        pnlCenter.Controls.Add(dgvBenhNhan);
+        searchGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24));
+        searchGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24));
+        searchGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24));
+        searchGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 144));
+        searchGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 206));
 
-        this.Controls.Add(pnlCenter);
-        this.Controls.Add(pnlRight);
-        this.Controls.Add(pnlTop);
+        foreach (TextBox box in new[] { _txtSearchName, _txtSearchPhone, _txtSearchId })
+        {
+            box.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter) LoadPatients(); };
+        }
+
+        var btnSearch = NativeUi.PrimaryButton("TÌM KIẾM");
+        btnSearch.Dock = DockStyle.Fill;
+        btnSearch.Margin = new Padding(8, 20, 4, 20);
+        btnSearch.Click += (_, _) => LoadPatients();
+
+        var btnNew = NativeUi.SecondaryButton("+  THÊM BỆNH NHÂN MỚI");
+        btnNew.Dock = DockStyle.Fill;
+        btnNew.Margin = new Padding(4, 20, 0, 20);
+        btnNew.Click += (_, _) => ResetForm();
+
+        searchGrid.Controls.Add(NativeUi.Field("Họ và tên", _txtSearchName), 0, 0);
+        searchGrid.Controls.Add(NativeUi.Field("Số điện thoại", _txtSearchPhone), 1, 0);
+        searchGrid.Controls.Add(NativeUi.Field("CCCD / Định danh", _txtSearchId), 2, 0);
+        searchGrid.Controls.Add(btnSearch, 3, 0);
+        searchGrid.Controls.Add(btnNew, 4, 0);
+        searchCard.Controls.Add(searchGrid);
+
+        var body = new SplitContainer
+        {
+            Dock = DockStyle.Fill,
+            FixedPanel = FixedPanel.Panel2,
+            BackColor = UiTheme.Background
+        };
+        NativeUi.ConfigureSplitter(body, desiredDistance: 760, panel1MinSize: 420, panel2MinSize: 320);
+        page.Controls.Add(body);
+        body.BringToFront();
+
+        var listCard = NativeUi.Card(DockStyle.Fill);
+        body.Panel1.Controls.Add(listCard);
+        listCard.Controls.Add(_grid);
+        listCard.Controls.Add(NativeUi.Section("Danh sách bệnh nhân tiếp nhận"));
+        listCard.Controls.Add(_lblFooter);
+        _grid.SelectionChanged += (_, _) => FillSelectedPatient();
+
+        var detailCard = NativeUi.Card(DockStyle.Fill, width: 370);
+        detailCard.Padding = new Padding(14);
+        body.Panel2.Controls.Add(detailCard);
+
+        _cmbGioiTinh.Items.AddRange(new object[] { "Nam", "Nữ", "Khác" });
+        UiTheme.ApplyComboBox(_cmbGioiTinh);
+        UiTheme.ApplyDateTimePicker(_dtpNgaySinh);
+        _chkNgaySinh.CheckedChanged += (_, _) => _dtpNgaySinh.Enabled = _chkNgaySinh.Checked;
+
+        var btnSave = NativeUi.PrimaryButton("LƯU THAY ĐỔI");
+        btnSave.Dock = DockStyle.Top;
+        btnSave.Click += (_, _) => SavePatient();
+
+        var btnCancel = NativeUi.SecondaryButton("HỦY BỎ");
+        btnCancel.Dock = DockStyle.Top;
+        btnCancel.Margin = new Padding(0, 8, 0, 0);
+        btnCancel.Click += (_, _) => ResetForm();
+
+        detailCard.Controls.Add(btnCancel);
+        detailCard.Controls.Add(btnSave);
+        detailCard.Controls.Add(NativeUi.Field("Địa chỉ thường trú", _txtDiaChi));
+        detailCard.Controls.Add(NativeUi.Field("Số CCCD", _txtCCCD));
+        detailCard.Controls.Add(NativeUi.Field("Số điện thoại *", _txtSDT));
+        detailCard.Controls.Add(NativeUi.Field("Giới tính", _cmbGioiTinh));
+        detailCard.Controls.Add(NativeUi.Field("Ngày sinh", _dtpNgaySinh));
+        detailCard.Controls.Add(_chkNgaySinh);
+        detailCard.Controls.Add(NativeUi.Field("Họ tên bệnh nhân *", _txtHoTen));
+        detailCard.Controls.Add(NativeUi.Section("Thông tin chi tiết"));
     }
 
-    private void SetupTheme()
-    {
-        this.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        this.BackColor = Color.FromArgb(245, 246, 250);
-    }
-
-    private void BtnSearch_Click(object? sender, EventArgs e)
-    {
-        LoadData(txtSearch.Text.Trim());
-    }
-
-    private void LoadData(string keyword = "")
+    private void LoadPatients()
     {
         try
         {
-            var dt = _benhNhanBLL.TimBenhNhan(keyword);
-            if (dt == null)
-            {
-                MessageBox.Show("Không thể tải danh sách bệnh nhân.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                dgvBenhNhan.DataSource = null;
-            }
-            else
-            {
-                dgvBenhNhan.DataSource = dt;
-                FormatGrid();
-                if (dt.Rows.Count == 0 && !string.IsNullOrWhiteSpace(keyword))
-                {
-                    MessageBox.Show("Không tìm thấy bệnh nhân nào phù hợp.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
+            DataTable table = _benhNhanBLL.TimBenhNhan(BuildKeyword());
+            _grid.DataSource = table;
+            ConfigureGrid();
+            _lblFooter.Text = $"Tổng cộng: {table.Rows.Count} bệnh nhân";
         }
-        catch
+        catch (Exception ex)
         {
-            MessageBox.Show("Đã xảy ra lỗi khi tìm kiếm bệnh nhân.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            NativeUi.ShowError("Không tải được danh sách bệnh nhân.\n" + ex.Message);
         }
     }
 
-    private void FormatGrid()
+    private string BuildKeyword()
     {
-        SetHeader(dgvBenhNhan, "MaBN", "Mã BN");
-        SetHeader(dgvBenhNhan, "HoTen", "Họ Tên");
-        SetHeader(dgvBenhNhan, "NgaySinh", "Ngày Sinh");
-        SetHeader(dgvBenhNhan, "GioiTinh", "Giới Tính");
-        SetHeader(dgvBenhNhan, "SDT", "SĐT");
-        SetHeader(dgvBenhNhan, "CCCD", "CCCD");
-        SetHeader(dgvBenhNhan, "DiaChi", "Địa Chỉ");
-        SetHeader(dgvBenhNhan, "TrangThaiGanNhat", "Trạng Thái");
+        if (!string.IsNullOrWhiteSpace(_txtSearchName.Text)) return _txtSearchName.Text.Trim();
+        if (!string.IsNullOrWhiteSpace(_txtSearchPhone.Text)) return _txtSearchPhone.Text.Trim();
+        if (!string.IsNullOrWhiteSpace(_txtSearchId.Text)) return _txtSearchId.Text.Trim();
+        return string.Empty;
     }
 
-    private void DgvBenhNhan_CellClick(object? sender, DataGridViewCellEventArgs e)
+    private void ConfigureGrid()
     {
-        if (e.RowIndex >= 0 && e.RowIndex < dgvBenhNhan.Rows.Count)
-        {
-            var row = dgvBenhNhan.Rows[e.RowIndex];
-            _currentMaBN = ReadCellInt(row, "MaBN");
-
-            txtHoTen.Text = ReadCellString(row, "HoTen");
-
-            object? ngaySinh = ReadCellValue(row, "NgaySinh");
-            if (ngaySinh is not null && ngaySinh != DBNull.Value)
-            {
-                chkNgaySinh.Checked = true;
-                dtpNgaySinh.Value = Convert.ToDateTime(ngaySinh);
-            }
-            else
-            {
-                chkNgaySinh.Checked = false;
-                dtpNgaySinh.Value = DateTime.Today;
-            }
-
-            cmbGioiTinh.SelectedItem = ReadCellString(row, "GioiTinh", "Nam");
-            txtSDT.Text = ReadCellString(row, "SDT");
-            txtCCCD.Text = ReadCellString(row, "CCCD");
-            txtDiaChi.Text = ReadCellString(row, "DiaChi");
-        }
+        if (_grid.Columns.Count == 0) return;
+        SetHeader("MaBN", "Mã BN", 70);
+        SetHeader("HoTen", "Họ tên", 180);
+        SetHeader("NgaySinh", "Ngày sinh", 90);
+        SetHeader("GioiTinh", "Giới tính", 70);
+        SetHeader("SDT", "Điện thoại", 110);
+        SetHeader("CCCD", "CCCD", 120);
+        SetHeader("DiaChi", "Địa chỉ", 220);
     }
 
-    private static object? ReadCellValue(DataGridViewRow row, string columnName)
+    private void SetHeader(string columnName, string header, int width)
     {
-        DataGridView? grid = row.DataGridView;
-        if (grid is null || !grid.Columns.Contains(columnName))
-        {
-            return null;
-        }
-
-        return row.Cells[columnName]?.Value;
+        if (!_grid.Columns.Contains(columnName)) return;
+        _grid.Columns[columnName].HeaderText = header;
+        _grid.Columns[columnName].Width = width;
     }
 
-    private static string ReadCellString(DataGridViewRow row, string columnName, string fallback = "")
+    private void FillSelectedPatient()
     {
-        object? value = ReadCellValue(row, columnName);
-        return value is null || value == DBNull.Value ? fallback : value.ToString() ?? fallback;
-    }
+        if (_grid.CurrentRow?.DataBoundItem is not DataRowView view) return;
+        DataRow row = view.Row;
 
-    private static int ReadCellInt(DataGridViewRow row, string columnName)
-    {
-        object? value = ReadCellValue(row, columnName);
-        return value is null || value == DBNull.Value ? 0 : Convert.ToInt32(value);
-    }
+        _currentMaBN = NativeUi.IntOf(row, "MaBN");
+        _txtHoTen.Text = NativeUi.TextOf(row, "HoTen");
+        _txtSDT.Text = NativeUi.TextOf(row, "SDT");
+        _txtCCCD.Text = NativeUi.TextOf(row, "CCCD");
+        _txtDiaChi.Text = NativeUi.TextOf(row, "DiaChi");
+        _cmbGioiTinh.Text = string.IsNullOrWhiteSpace(NativeUi.TextOf(row, "GioiTinh")) ? "Nam" : NativeUi.TextOf(row, "GioiTinh");
 
-    private static void SetHeader(DataGridView grid, string columnName, string headerText)
-    {
-        if (grid.Columns.Contains(columnName) && grid.Columns[columnName] is DataGridViewColumn column)
-        {
-            column.HeaderText = headerText;
-        }
-    }
-
-    private bool ValidateInput()
-    {
-        if (string.IsNullOrWhiteSpace(txtHoTen.Text))
-        {
-            MessageBox.Show("Họ tên không được để trống.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            txtHoTen.Focus();
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(txtSDT.Text))
-        {
-            MessageBox.Show("Số điện thoại không được để trống.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            txtSDT.Focus();
-            return false;
-        }
-
-        string cccd = txtCCCD.Text.Trim();
-        if (!string.IsNullOrEmpty(cccd) && (cccd.Length != 12 || !cccd.All(char.IsDigit)))
-        {
-            MessageBox.Show("CCCD phải là 12 chữ số nếu có nhập.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            txtCCCD.Focus();
-            return false;
-        }
-
-        return true;
-    }
-
-    private BenhNhanDTO CreateDTO()
-    {
-        return new BenhNhanDTO
-        {
-            MaBN = _currentMaBN,
-            HoTen = txtHoTen.Text.Trim(),
-            NgaySinh = chkNgaySinh.Checked ? dtpNgaySinh.Value : null,
-            GioiTinh = cmbGioiTinh.SelectedItem?.ToString() ?? "Nam",
-            SDT = txtSDT.Text.Trim(),
-            CCCD = string.IsNullOrWhiteSpace(txtCCCD.Text) ? null : txtCCCD.Text.Trim(),
-            DiaChi = string.IsNullOrWhiteSpace(txtDiaChi.Text) ? null : txtDiaChi.Text.Trim()
-        };
-    }
-
-    private void BtnThem_Click(object? sender, EventArgs e)
-    {
-        if (!ValidateInput()) return;
-
-        var dto = CreateDTO();
-        dto.MaBN = 0; // Force insert
-        
-        bool success = _benhNhanBLL.ThemBenhNhan(dto);
-        if (success)
-        {
-            MessageBox.Show("Thêm bệnh nhân thành công.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            ResetForm();
-            LoadData();
-        }
-        else
-        {
-            MessageBox.Show("Thêm bệnh nhân thất bại. Vui lòng thử lại.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-
-    private void BtnSua_Click(object? sender, EventArgs e)
-    {
-        if (_currentMaBN <= 0)
-        {
-            MessageBox.Show("Vui lòng chọn bệnh nhân cần cập nhật.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-
-        if (!ValidateInput()) return;
-
-        var dto = CreateDTO();
-        bool success = _benhNhanBLL.CapNhatBenhNhan(dto);
-        if (success)
-        {
-            MessageBox.Show("Cập nhật bệnh nhân thành công.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            LoadData();
-        }
-        else
-        {
-            MessageBox.Show("Cập nhật bệnh nhân thất bại. Vui lòng thử lại.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
+        DateTime? ngaySinh = NativeUi.DateOf(row, "NgaySinh");
+        _chkNgaySinh.Checked = ngaySinh.HasValue;
+        _dtpNgaySinh.Enabled = ngaySinh.HasValue;
+        _dtpNgaySinh.Value = ngaySinh ?? DateTime.Today;
     }
 
     private void ResetForm()
     {
         _currentMaBN = 0;
-        txtHoTen.Clear();
-        chkNgaySinh.Checked = true;
-        dtpNgaySinh.Value = DateTime.Now;
-        cmbGioiTinh.SelectedIndex = 0;
-        txtSDT.Clear();
-        txtCCCD.Clear();
-        txtDiaChi.Clear();
-        txtHoTen.Focus();
+        _txtHoTen.Clear();
+        _txtSDT.Clear();
+        _txtCCCD.Clear();
+        _txtDiaChi.Clear();
+        _cmbGioiTinh.SelectedIndex = 0;
+        _chkNgaySinh.Checked = true;
+        _dtpNgaySinh.Value = DateTime.Today;
+        _txtHoTen.Focus();
+    }
+
+    private void SavePatient()
+    {
+        string hoten = _txtHoTen.Text.Trim();
+        string sdt = _txtSDT.Text.Trim();
+        string cccd = _txtCCCD.Text.Trim();
+
+        if (hoten.Length == 0)
+        {
+            NativeUi.ShowError("Họ tên không được để trống.");
+            _txtHoTen.Focus();
+            return;
+        }
+
+        if (sdt.Length == 0)
+        {
+            NativeUi.ShowError("SĐT không được để trống.");
+            _txtSDT.Focus();
+            return;
+        }
+
+        if (!sdt.StartsWith('0') || sdt.Length is < 10 or > 11 || !sdt.All(char.IsDigit))
+        {
+            NativeUi.ShowError("SĐT phải bắt đầu bằng 0 và dài 10-11 số.");
+            _txtSDT.Focus();
+            return;
+        }
+
+        if (cccd.Length > 0 && (cccd.Length != 12 || !cccd.All(char.IsDigit)))
+        {
+            NativeUi.ShowError("CCCD phải đúng 12 số.");
+            _txtCCCD.Focus();
+            return;
+        }
+
+        var dto = new BenhNhanDTO
+        {
+            MaBN = _currentMaBN,
+            HoTen = hoten,
+            NgaySinh = _chkNgaySinh.Checked ? _dtpNgaySinh.Value.Date : null,
+            GioiTinh = _cmbGioiTinh.Text,
+            SDT = sdt,
+            CCCD = string.IsNullOrWhiteSpace(cccd) ? null : cccd,
+            DiaChi = string.IsNullOrWhiteSpace(_txtDiaChi.Text) ? null : _txtDiaChi.Text.Trim()
+        };
+
+        bool ok = _currentMaBN > 0
+            ? _benhNhanBLL.CapNhatBenhNhan(dto)
+            : _benhNhanBLL.ThemBenhNhan(dto);
+
+        if (!ok)
+        {
+            NativeUi.ShowError("Thao tác thất bại. Có thể CCCD bị trùng hoặc dữ liệu chưa hợp lệ.");
+            return;
+        }
+
+        NativeUi.ShowInfo("Lưu bệnh nhân thành công.");
+        ResetForm();
+        LoadPatients();
     }
 }

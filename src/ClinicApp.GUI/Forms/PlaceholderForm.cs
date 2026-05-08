@@ -1,3 +1,5 @@
+using System.Drawing;
+using System.Windows.Forms;
 using ClinicApp.GUI;
 
 namespace ClinicApp.GUI.Forms;
@@ -14,12 +16,12 @@ public class PlaceholderForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(900, 600);
         Size = new Size(1040, 680);
-        Padding = new Padding(16);
+        Padding = new Padding(ModernUI.ContainerPadding);
 
         var header = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 56,
+            Height = ModernUI.TopBarHeight,
             BackColor = UiTheme.Background
         };
 
@@ -34,10 +36,9 @@ public class PlaceholderForm : Form
 
         BodyPanel = new Panel
         {
-            BackColor = UiTheme.Surface,
-            BorderStyle = BorderStyle.FixedSingle,
-            Dock = DockStyle.Fill,
-            Padding = new Padding(16)
+            BackColor   = UiTheme.Surface,
+            Dock        = DockStyle.Fill,
+            BorderStyle = BorderStyle.FixedSingle
         };
 
         var emptyState = new Label

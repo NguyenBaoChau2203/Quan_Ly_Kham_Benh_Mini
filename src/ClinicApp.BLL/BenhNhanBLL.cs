@@ -20,12 +20,16 @@ public class BenhNhanBLL
 
     public bool ThemBenhNhan(BenhNhanDTO bn)
     {
-        return IsValidBenhNhan(bn) && _benhNhanDAL.ThemBenhNhan(bn);
+        if (!IsValidBenhNhan(bn)) return false;
+        if (!string.IsNullOrWhiteSpace(bn.CCCD) && _benhNhanDAL.TonTaiCCCD(bn.CCCD)) return false;
+        return _benhNhanDAL.ThemBenhNhan(bn);
     }
 
     public bool CapNhatBenhNhan(BenhNhanDTO bn)
     {
-        return bn.MaBN > 0 && IsValidBenhNhan(bn) && _benhNhanDAL.CapNhatBenhNhan(bn);
+        if (bn.MaBN <= 0 || !IsValidBenhNhan(bn)) return false;
+        if (!string.IsNullOrWhiteSpace(bn.CCCD) && _benhNhanDAL.TonTaiCCCD(bn.CCCD, bn.MaBN)) return false;
+        return _benhNhanDAL.CapNhatBenhNhan(bn);
     }
 
     private static bool IsValidBenhNhan(BenhNhanDTO bn)

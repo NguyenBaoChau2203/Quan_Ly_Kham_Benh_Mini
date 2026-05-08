@@ -1,8 +1,4 @@
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-using System;
 using System.Data;
-using System.Drawing;
-using System.Windows.Forms;
 using ClinicApp.BLL;
 
 namespace ClinicApp.GUI.Forms;
@@ -10,199 +6,111 @@ namespace ClinicApp.GUI.Forms;
 public class FrmLichSu : Form
 {
     private readonly ThongKeBLL _thongKeBLL = new();
-
-    private DateTimePicker dtpFrom;
-    private DateTimePicker dtpTo;
-    private TextBox txtKeyword;
-    private Button btnSearch;
-    private DataGridView dgvLichSu;
+    private readonly DateTimePicker _dtpFrom = new();
+    private readonly DateTimePicker _dtpTo = new();
+    private readonly TextBox _txtKeyword = NativeUi.TextBox("Mã BN, tên, SĐT hoặc CCCD...");
+    private readonly DataGridView _grid = NativeUi.Grid();
+    private readonly Label _lblSummary = new()
+    {
+        Dock = DockStyle.Fill,
+        Font = UiTheme.LabelFont,
+        ForeColor = UiTheme.MutedText,
+        TextAlign = ContentAlignment.MiddleLeft
+    };
 
     public FrmLichSu()
     {
         UiTheme.ApplyForm(this);
         Text = "Lịch sử khám bệnh";
-        Padding = new Padding(16);
-
-        InitializeComponent();
-        LoadData();
+        BuildLayout();
+        Load += (_, _) =>
+        {
+            _dtpTo.Value = DateTime.Today;
+            _dtpFrom.Value = DateTime.Today.AddDays(-7);
+            LoadData();
+        };
     }
 
-    private void InitializeComponent()
+    private void BuildLayout()
     {
-        var header = new Panel
+        var page = NativeUi.Page();
+        Controls.Add(page);
+
+        var filter = NativeUi.Card(DockStyle.Top, 92);
+        page.Controls.Add(filter);
+        filter.Controls.Add(NativeUi.Title("Lịch sử khám bệnh"));
+
+        UiTheme.ApplyDateTimePicker(_dtpFrom);
+        UiTheme.ApplyDateTimePicker(_dtpTo);
+        _dtpFrom.Width = 130;
+        _dtpTo.Width = 130;
+        _txtKeyword.Width = 300;
+        _txtKeyword.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter) LoadData(); };
+
+        var toolbar = NativeUi.Toolbar();
+        toolbar.Controls.Add(NativeUi.FieldLabel("Từ ngày"));
+        toolbar.Controls.Add(_dtpFrom);
+        toolbar.Controls.Add(NativeUi.FieldLabel("Đến ngày"));
+        toolbar.Controls.Add(_dtpTo);
+        toolbar.Controls.Add(NativeUi.FieldLabel("Tìm kiếm"));
+        toolbar.Controls.Add(_txtKeyword);
+
+        var btnFilter = NativeUi.PrimaryButton("Lọc dữ liệu");
+        btnFilter.Width = 120;
+        btnFilter.Click += (_, _) => LoadData();
+        toolbar.Controls.Add(btnFilter);
+        filter.Controls.Add(toolbar);
+
+        var gridCard = NativeUi.Card(DockStyle.Fill);
+        page.Controls.Add(gridCard);
+        gridCard.BringToFront();
+        gridCard.Controls.Add(_grid);
+
+        var bottom = new Panel
         {
-            Dock = DockStyle.Top,
-            Height = 56,
-            BackColor = UiTheme.Background
+            Dock = DockStyle.Bottom,
+            Height = 34,
+            BackColor = UiTheme.SurfaceContainerLow,
+            Padding = new Padding(12, 0, 12, 0)
         };
-
-        var title = new Label
-        {
-            Dock = DockStyle.Fill,
-            Font = UiTheme.ScreenHeaderFont,
-            ForeColor = UiTheme.Text,
-            Text = "Lịch sử khám bệnh",
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-        header.Controls.Add(title);
-
-        var filterBar = new Panel
-        {
-            Dock = DockStyle.Top,
-            Height = 44,
-            BackColor = UiTheme.Background
-        };
-
-        var lblFrom = new Label
-        {
-            Text = "Từ ngày:",
-            AutoSize = true,
-            Location = new Point(0, 12),
-            Font = UiTheme.BodyFont,
-            ForeColor = UiTheme.Text
-        };
-
-        dtpFrom = new DateTimePicker
-        {
-            Location = new Point(64, 8),
-            Width = 130,
-            Format = DateTimePickerFormat.Short,
-            Font = UiTheme.BodyFont
-        };
-        dtpFrom.Value = DateTime.Today.AddDays(-7);
-
-        var lblTo = new Label
-        {
-            Text = "Đến ngày:",
-            AutoSize = true,
-            Location = new Point(206, 12),
-            Font = UiTheme.BodyFont,
-            ForeColor = UiTheme.Text
-        };
-
-        dtpTo = new DateTimePicker
-        {
-            Location = new Point(274, 8),
-            Width = 130,
-            Format = DateTimePickerFormat.Short,
-            Font = UiTheme.BodyFont
-        };
-
-        var lblKeyword = new Label
-        {
-            Text = "Từ khóa:",
-            AutoSize = true,
-            Location = new Point(416, 12),
-            Font = UiTheme.BodyFont,
-            ForeColor = UiTheme.Text
-        };
-
-        txtKeyword = new TextBox
-        {
-            Location = new Point(474, 8),
-            Width = 180,
-            Font = UiTheme.BodyFont,
-            PlaceholderText = "Tên, SĐT, CCCD..."
-        };
-
-        btnSearch = new Button
-        {
-            Text = "Tìm",
-            Location = new Point(662, 7),
-            Width = 72
-        };
-        UiTheme.ApplyPrimaryButton(btnSearch);
-        btnSearch.Click += BtnSearch_Click;
-
-        filterBar.Controls.AddRange(new Control[]
-        {
-            lblFrom, dtpFrom, lblTo, dtpTo, lblKeyword, txtKeyword, btnSearch
-        });
-
-        var gridPanel = new Panel
-        {
-            Dock = DockStyle.Fill,
-            BackColor = UiTheme.Surface,
-            BorderStyle = BorderStyle.FixedSingle,
-            Padding = new Padding(0)
-        };
-
-        dgvLichSu = new DataGridView
-        {
-            Dock = DockStyle.Fill,
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-            AllowUserToAddRows = false,
-            AllowUserToDeleteRows = false,
-            ReadOnly = true,
-            BackgroundColor = Color.White,
-            RowHeadersVisible = false,
-            Font = UiTheme.BodyFont,
-            ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
-            {
-                Font = UiTheme.LabelFont,
-                BackColor = UiTheme.SurfaceLow,
-                ForeColor = UiTheme.Text
-            }
-        };
-
-        gridPanel.Controls.Add(dgvLichSu);
-
-        Controls.Add(gridPanel);
-        Controls.Add(filterBar);
-        Controls.Add(header);
-
-        dgvLichSu.CellFormatting += DgvLichSu_CellFormatting;
-    }
-
-    private void BtnSearch_Click(object? sender, EventArgs e)
-    {
-        LoadData();
+        page.Controls.Add(bottom);
+        bottom.Controls.Add(_lblSummary);
     }
 
     private void LoadData()
     {
         try
         {
-            DataTable dt = _thongKeBLL.LayLichSuKham(
-                dtpFrom.Value.Date,
-                dtpTo.Value.Date,
-                txtKeyword.Text);
+            DataTable table = _thongKeBLL.LayLichSuKham(_dtpFrom.Value.Date, _dtpTo.Value.Date, _txtKeyword.Text);
+            _grid.DataSource = table;
+            ConfigureGrid();
 
-            dgvLichSu.DataSource = null;
-            dgvLichSu.DataSource = dt;
-
-            if (dgvLichSu.Columns.Count > 0)
-            {
-                if (dgvLichSu.Columns.Contains("MaLK")) { dgvLichSu.Columns["MaLK"]!.HeaderText = "Mã LK"; dgvLichSu.Columns["MaLK"]!.Visible = false; }
-                if (dgvLichSu.Columns.Contains("NgayKham")) { dgvLichSu.Columns["NgayKham"]!.HeaderText = "Ngày khám"; dgvLichSu.Columns["NgayKham"]!.DefaultCellStyle.Format = "dd/MM/yyyy HH:mm"; }
-                if (dgvLichSu.Columns.Contains("MaBN")) { dgvLichSu.Columns["MaBN"]!.HeaderText = "Mã BN"; dgvLichSu.Columns["MaBN"]!.Visible = false; }
-                if (dgvLichSu.Columns.Contains("HoTen")) dgvLichSu.Columns["HoTen"]!.HeaderText = "Họ tên";
-                if (dgvLichSu.Columns.Contains("TenBacSi")) dgvLichSu.Columns["TenBacSi"]!.HeaderText = "Bác sĩ";
-                if (dgvLichSu.Columns.Contains("ChanDoan")) dgvLichSu.Columns["ChanDoan"]!.HeaderText = "Chẩn đoán";
-                if (dgvLichSu.Columns.Contains("TrangThai")) dgvLichSu.Columns["TrangThai"]!.HeaderText = "Trạng thái";
-            }
+            int daKham = table.AsEnumerable().Count(r => NativeUi.TextOf(r, "TrangThai") == "DaKham");
+            int dangKham = table.AsEnumerable().Count(r => NativeUi.TextOf(r, "TrangThai") == "DangKham");
+            int daHuy = table.AsEnumerable().Count(r => NativeUi.TextOf(r, "TrangThai") == "DaHuy");
+            _lblSummary.Text = $"Tổng cộng: {table.Rows.Count} bản ghi | Đã khám: {daKham} | Đang khám: {dangKham} | Đã hủy: {daHuy}";
         }
-        catch
+        catch (Exception ex)
         {
-            MessageBox.Show("Đã xảy ra lỗi khi tải lịch sử khám.", "Lỗi",
-                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            NativeUi.ShowError("Đã xảy ra lỗi khi tải lịch sử khám.\n" + ex.Message);
         }
     }
 
-    private void DgvLichSu_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+    private void ConfigureGrid()
     {
-        if (dgvLichSu.Columns[e.ColumnIndex].Name == "TrangThai" && e.Value is string status)
-        {
-            e.Value = status switch
-            {
-                "DangCho" => "Đang chờ",
-                "DangKham" => "Đang khám",
-                "DaKham" => "Đã khám",
-                "DaHuy" => "Đã hủy",
-                _ => status
-            };
-            e.FormattingApplied = true;
-        }
+        Header("MaLK", "Mã LK", 70);
+        Header("NgayKham", "Ngày khám", 145);
+        Header("MaBN", "Mã BN", 70);
+        Header("HoTen", "Họ tên", 190);
+        Header("TenBacSi", "Bác sĩ", 160);
+        Header("ChanDoan", "Chẩn đoán", 260);
+        Header("TrangThai", "Trạng thái", 110);
+    }
+
+    private void Header(string name, string text, int width)
+    {
+        if (!_grid.Columns.Contains(name)) return;
+        _grid.Columns[name].HeaderText = text;
+        _grid.Columns[name].Width = width;
     }
 }
