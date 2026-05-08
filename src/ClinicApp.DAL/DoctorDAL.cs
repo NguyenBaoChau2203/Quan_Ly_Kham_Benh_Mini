@@ -1,170 +1,182 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.IdentityModel.Protocols;
-using System;
-using System.Configuration;
+﻿using System;
 using System.Data;
+using Microsoft.Data.SqlClient;
+using System.Configuration;
 
 namespace ClinicApp.DAL
 {
     public class DoctorDAL
     {
-        private readonly string connStr;
+        private readonly string connStr =
+            ConfigurationManager.ConnectionStrings["conn"].ConnectionString;
 
-        public DoctorDAL()
-        {
-            connStr = ConfigurationManager.ConnectionStrings["conn"].ConnectionString;
-        }
-
-        // 1. Hàng đợi DangCho
+        // 1. HÀNG ĐỢI ĐANG CHỜ (CHỈ DangCho)
         public DataTable LayHangDoiDangCho()
         {
-            using (SqlConnection conn = new SqlConnection(connStr))
-            {
-                string query = @"
-                    SELECT 
-                        lk.MaLK,
-                        lk.SoThuTu,
-                        bn.MaBN,
-                        bn.HoTen,
-                        lk.NgayKham,
-                        DATEDIFF(MINUTE, lk.NgayKham, GETDATE()) AS ThoiGianChoPhut,
-                        lk.TrangThai
-                    FROM LuotKham lk
-                    JOIN BenhNhan bn ON lk.MaBN = bn.MaBN
-                    WHERE lk.TrangThai = N'DangCho'
-                    ORDER BY lk.SoThuTu";
+            DataTable dt = new DataTable();
 
-                SqlDataAdapter da = new SqlDataAdapter(query, conn);
-                DataTable dt = new DataTable();
-                da.Fill(dt);
-                return dt;
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    string query = @"
+                        SELECT 
+                            lk.MaLK,
+                            lk.SoThuTu,
+                            bn.MaBN,
+                            bn.HoTen,
+                            lk.NgayKham,
+                            DATEDIFF(MINUTE, lk.NgayKham, GETDATE()) AS ThoiGianChoPhut,
+                            lk.TrangThai
+                        FROM LuotKham lk
+                        JOIN BenhNhan bn ON lk.MaBN = bn.MaBN
+                        WHERE lk.TrangThai = 'DangCho'
+                        ORDER BY lk.SoThuTu";
+
+                    SqlDataAdapter da = new SqlDataAdapter(query, conn);
+                    da.Fill(dt);
+                }
             }
+            catch
+            {
+                // ❗ Không throw → trả bảng rỗng
+            }
+
+            return dt;
         }
 
-        // 2. Atomic: DangCho → DangKham
+        // 2. ATOMIC: DangCho → DangKham
         public bool ChuyenSangDangKham(int maLK, int maBS)
         {
-            using (SqlConnection conn = new SqlConnection(connStr))
+            try
             {
-                conn.Open();
-
-                string query = @"
-                    UPDATE LuotKham
-                    SET TrangThai = N'DangKham',
-                        MaBacSi = @MaBS
-                    WHERE MaLK = @MaLK
-                      AND TrangThai = N'DangCho'";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                using (SqlConnection conn = new SqlConnection(connStr))
                 {
-                    cmd.Parameters.Add("@MaLK", SqlDbType.Int).Value = maLK;
-                    cmd.Parameters.Add("@MaBS", SqlDbType.Int).Value = maBS;
+                    conn.Open();
+
+                    string query = @"
+                        UPDATE LuotKham
+                        SET TrangThai = 'DangKham',
+                            MaBacSi = @MaBS
+                        WHERE MaLK = @MaLK
+                          AND TrangThai = 'DangCho'";
+
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@MaLK", maLK);
+                    cmd.Parameters.AddWithValue("@MaBS", maBS);
 
                     int rows = cmd.ExecuteNonQuery();
-                    return rows == 1; // 🔥 atomic check
+
+                    return rows == 1; //  atomic chuẩn
                 }
+            }
+            catch
+            {
+                return false;
             }
         }
 
-        // 3. Hoàn tất khám (Stored Procedure + chống double save)
+        // 3. HOÀN TẤT KHÁM (GỌI STORED PROCEDURE)
         public bool HoanTatKham(int maLK, string trieuChung, string chanDoan, string toaThuoc, string loiDan)
         {
-            using (SqlConnection conn = new SqlConnection(connStr))
+            try
             {
-                conn.Open();
-                using (SqlTransaction tran = conn.BeginTransaction())
+                using (SqlConnection conn = new SqlConnection(connStr))
                 {
-                    try
-                    {
-                        using (SqlCommand cmd = new SqlCommand("sp_HoanTatKham", conn, tran))
-                        {
-                            cmd.CommandType = CommandType.StoredProcedure;
+                    conn.Open();
 
-                            cmd.Parameters.Add("@MaLK", SqlDbType.Int).Value = maLK;
-                            cmd.Parameters.Add("@TrieuChung", SqlDbType.NVarChar).Value = trieuChung ?? (object)DBNull.Value;
-                            cmd.Parameters.Add("@ChanDoan", SqlDbType.NVarChar).Value = chanDoan ?? (object)DBNull.Value;
-                            cmd.Parameters.Add("@ToaThuoc", SqlDbType.NVarChar).Value = toaThuoc ?? (object)DBNull.Value;
-                            cmd.Parameters.Add("@LoiDan", SqlDbType.NVarChar).Value = loiDan ?? (object)DBNull.Value;
+                    SqlCommand cmd = new SqlCommand("sp_HoanTatKham", conn);
+                    cmd.CommandType = CommandType.StoredProcedure;
 
-                            int rows = cmd.ExecuteNonQuery();
+                    cmd.Parameters.AddWithValue("@MaLK", maLK);
+                    cmd.Parameters.AddWithValue("@TrieuChung", trieuChung ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ChanDoan", chanDoan ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ToaThuoc", toaThuoc ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LoiDan", loiDan ?? (object)DBNull.Value);
 
-                            if (rows <= 0)
-                            {
-                                tran.Rollback();
-                                return false;
-                            }
+                    int rows = cmd.ExecuteNonQuery();
 
-                            tran.Commit();
-                            return true;
-                        }
-                    }
-                    catch
-                    {
-                        tran.Rollback();
-                        return false;
-                    }
+                    return rows > 0; // SP fail → trả false
                 }
+            }
+            catch
+            {
+                return false;
             }
         }
 
-        // 4. Quay lại DangCho (atomic)
+        // 4. QUAY LẠI HÀNG ĐỢI (ATOMIC)
         public bool ChuyenVeDangCho(int maLK)
         {
-            using (SqlConnection conn = new SqlConnection(connStr))
+            try
             {
-                conn.Open();
-
-                string query = @"
-                    UPDATE LuotKham
-                    SET TrangThai = N'DangCho'
-                    WHERE MaLK = @MaLK
-                      AND TrangThai = N'DangKham'";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                using (SqlConnection conn = new SqlConnection(connStr))
                 {
-                    cmd.Parameters.Add("@MaLK", SqlDbType.Int).Value = maLK;
+                    conn.Open();
+
+                    string query = @"
+                        UPDATE LuotKham
+                        SET TrangThai = 'DangCho',
+                            MaBacSi = NULL
+                        WHERE MaLK = @MaLK
+                          AND TrangThai = 'DangKham'";
+
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@MaLK", maLK);
 
                     int rows = cmd.ExecuteNonQuery();
+
                     return rows == 1;
                 }
             }
+            catch
+            {
+                return false;
+            }
         }
 
-        // 5. Dữ liệu in phiếu
+        // 5. DỮ LIỆU IN PHIẾU (CHO PRINT PREVIEW)
         public DataTable LayDuLieuInPhieu(int maLK)
         {
-            using (SqlConnection conn = new SqlConnection(connStr))
-            {
-                string query = @"
-                    SELECT 
-                        lk.MaLK,
-                        lk.SoThuTu,
-                        lk.NgayKham,
-                        bn.MaBN,
-                        bn.HoTen,
-                        bn.NgaySinh,
-                        bn.GioiTinh,
-                        nv.HoTen AS TenBacSi,
-                        ct.ChanDoan,
-                        ct.ToaThuoc,
-                        ct.LoiDan
-                    FROM LuotKham lk
-                    JOIN BenhNhan bn ON lk.MaBN = bn.MaBN
-                    LEFT JOIN NhanVien nv ON lk.MaBacSi = nv.MaNV
-                    LEFT JOIN ChiTietKham ct ON lk.MaLK = ct.MaLK
-                    WHERE lk.MaLK = @MaLK";
+            DataTable dt = new DataTable();
 
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
                 {
-                    cmd.Parameters.Add("@MaLK", SqlDbType.Int).Value = maLK;
+                    string query = @"
+                        SELECT 
+                            lk.MaLK,
+                            lk.SoThuTu,
+                            lk.NgayKham,
+                            bn.MaBN,
+                            bn.HoTen,
+                            bn.NgaySinh,
+                            bn.GioiTinh,
+                            nv.HoTen AS TenBacSi,
+                            ct.TrieuChung,
+                            ct.ChanDoan,
+                            ct.ToaThuoc,
+                            ct.LoiDan
+                        FROM LuotKham lk
+                        JOIN BenhNhan bn ON lk.MaBN = bn.MaBN
+                        LEFT JOIN NhanVien nv ON lk.MaBacSi = nv.MaNV
+                        LEFT JOIN ChiTietKham ct ON lk.MaLK = ct.MaLK
+                        WHERE lk.MaLK = @MaLK";
+
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@MaLK", maLK);
 
                     SqlDataAdapter da = new SqlDataAdapter(cmd);
-                    DataTable dt = new DataTable();
                     da.Fill(dt);
-
-                    return dt;
                 }
             }
+            catch
+            {
+                // trả bảng rỗng
+            }
+
+            return dt;
         }
     }
 }

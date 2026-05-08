@@ -1,170 +1,95 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.IdentityModel.Protocols;
-using System;
-using System.Configuration;
+﻿using System;
 using System.Data;
+using ClinicApp.DAL;
+using Microsoft.Data.SqlClient;
 
-namespace ClinicApp.DAL
+namespace ClinicApp.BLL
 {
-    public class DoctorDAL
+    public class DoctorBLL
     {
-        private readonly string connStr;
+        private readonly DoctorDAL _doctorDal;
 
-        public DoctorDAL()
+        public DoctorBLL()
         {
-            connStr = ConfigurationManager.ConnectionStrings["conn"].ConnectionString;
+            _doctorDal = new DoctorDAL();
         }
 
-        // 1. Hàng đợi DangCho
+        // 1. LẤY HÀNG ĐỢI
+        // Yêu cầu: Chỉ lấy trạng thái 'DangCho'. Nếu lỗi không quăng Exception.
         public DataTable LayHangDoiDangCho()
         {
-            using (SqlConnection conn = new SqlConnection(connStr))
-            {
-                string query = @"
-                    SELECT 
-                        lk.MaLK,
-                        lk.SoThuTu,
-                        bn.MaBN,
-                        bn.HoTen,
-                        lk.NgayKham,
-                        DATEDIFF(MINUTE, lk.NgayKham, GETDATE()) AS ThoiGianChoPhut,
-                        lk.TrangThai
-                    FROM LuotKham lk
-                    JOIN BenhNhan bn ON lk.MaBN = bn.MaBN
-                    WHERE lk.TrangThai = N'DangCho'
-                    ORDER BY lk.SoThuTu";
+            DataTable dt = _doctorDal.LayHangDoiDangCho();
 
-                SqlDataAdapter da = new SqlDataAdapter(query, conn);
-                DataTable dt = new DataTable();
-                da.Fill(dt);
-                return dt;
+            // Theo luật demo-safe: Đảm bảo trả về DataTable rỗng nếu DAL bị sự cố (chứ không trả null để GUI văng lỗi)
+            if (dt == null)
+            {
+                return new DataTable();
             }
+
+            return dt;
         }
 
-        // 2. Atomic: DangCho → DangKham
+        // 2. NHẬN BỆNH NHÂN (BẮT ĐẦU KHÁM)
+        // Yêu cầu (Quy định 1): Atomic DangCho -> DangKham. Nếu false GUI sẽ báo lượt khám đã bị nhận.
         public bool ChuyenSangDangKham(int maLK, int maBS)
         {
-            using (SqlConnection conn = new SqlConnection(connStr))
+            // Kiểm tra nghiệp vụ (Validate): Mã lượt khám và Mã bác sĩ phải lớn hơn 0
+            if (maLK <= 0 || maBS <= 0)
             {
-                conn.Open();
-
-                string query = @"
-                    UPDATE LuotKham
-                    SET TrangThai = N'DangKham',
-                        MaBacSi = @MaBS
-                    WHERE MaLK = @MaLK
-                      AND TrangThai = N'DangCho'";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.Add("@MaLK", SqlDbType.Int).Value = maLK;
-                    cmd.Parameters.Add("@MaBS", SqlDbType.Int).Value = maBS;
-
-                    int rows = cmd.ExecuteNonQuery();
-                    return rows == 1; // 🔥 atomic check
-                }
+                return false;
             }
+
+            return _doctorDal.ChuyenSangDangKham(maLK, maBS);
         }
 
-        // 3. Hoàn tất khám (Stored Procedure + chống double save)
+        // 3. LƯU KHÁM BỆNH
+        // Yêu cầu (Quy định 2): Chống double-save, gọi SP sp_HoanTatKham. 
         public bool HoanTatKham(int maLK, string trieuChung, string chanDoan, string toaThuoc, string loiDan)
         {
-            using (SqlConnection conn = new SqlConnection(connStr))
+            if (maLK <= 0)
             {
-                conn.Open();
-                using (SqlTransaction tran = conn.BeginTransaction())
-                {
-                    try
-                    {
-                        using (SqlCommand cmd = new SqlCommand("sp_HoanTatKham", conn, tran))
-                        {
-                            cmd.CommandType = CommandType.StoredProcedure;
-
-                            cmd.Parameters.Add("@MaLK", SqlDbType.Int).Value = maLK;
-                            cmd.Parameters.Add("@TrieuChung", SqlDbType.NVarChar).Value = trieuChung ?? (object)DBNull.Value;
-                            cmd.Parameters.Add("@ChanDoan", SqlDbType.NVarChar).Value = chanDoan ?? (object)DBNull.Value;
-                            cmd.Parameters.Add("@ToaThuoc", SqlDbType.NVarChar).Value = toaThuoc ?? (object)DBNull.Value;
-                            cmd.Parameters.Add("@LoiDan", SqlDbType.NVarChar).Value = loiDan ?? (object)DBNull.Value;
-
-                            int rows = cmd.ExecuteNonQuery();
-
-                            if (rows <= 0)
-                            {
-                                tran.Rollback();
-                                return false;
-                            }
-
-                            tran.Commit();
-                            return true;
-                        }
-                    }
-                    catch
-                    {
-                        tran.Rollback();
-                        return false;
-                    }
-                }
+                return false;
             }
+
+            // Tiền xử lý dữ liệu: Xóa khoảng trắng thừa ở 2 đầu chuỗi (nếu có) để data sạch sẽ trước khi xuống DB
+            trieuChung = trieuChung?.Trim();
+            chanDoan = chanDoan?.Trim();
+            toaThuoc = toaThuoc?.Trim();
+            loiDan = loiDan?.Trim();
+
+            return _doctorDal.HoanTatKham(maLK, trieuChung, chanDoan, toaThuoc, loiDan);
         }
 
-        // 4. Quay lại DangCho (atomic)
+        // 4. QUAY LẠI HÀNG ĐỢI
+        // Yêu cầu: Atomic DangKham -> DangCho
         public bool ChuyenVeDangCho(int maLK)
         {
-            using (SqlConnection conn = new SqlConnection(connStr))
+            if (maLK <= 0)
             {
-                conn.Open();
-
-                string query = @"
-                    UPDATE LuotKham
-                    SET TrangThai = N'DangCho'
-                    WHERE MaLK = @MaLK
-                      AND TrangThai = N'DangKham'";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.Add("@MaLK", SqlDbType.Int).Value = maLK;
-
-                    int rows = cmd.ExecuteNonQuery();
-                    return rows == 1;
-                }
+                return false;
             }
+
+            return _doctorDal.ChuyenVeDangCho(maLK);
         }
 
-        // 5. Dữ liệu in phiếu
+        // 5. IN PHIẾU KHÁM
+        // Yêu cầu (Quy định 3): Cung cấp dữ liệu cho Print Preview, không văng lỗi
         public DataTable LayDuLieuInPhieu(int maLK)
         {
-            using (SqlConnection conn = new SqlConnection(connStr))
+            if (maLK <= 0)
             {
-                string query = @"
-                    SELECT 
-                        lk.MaLK,
-                        lk.SoThuTu,
-                        lk.NgayKham,
-                        bn.MaBN,
-                        bn.HoTen,
-                        bn.NgaySinh,
-                        bn.GioiTinh,
-                        nv.HoTen AS TenBacSi,
-                        ct.ChanDoan,
-                        ct.ToaThuoc,
-                        ct.LoiDan
-                    FROM LuotKham lk
-                    JOIN BenhNhan bn ON lk.MaBN = bn.MaBN
-                    LEFT JOIN NhanVien nv ON lk.MaBacSi = nv.MaNV
-                    LEFT JOIN ChiTietKham ct ON lk.MaLK = ct.MaLK
-                    WHERE lk.MaLK = @MaLK";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.Add("@MaLK", SqlDbType.Int).Value = maLK;
-
-                    SqlDataAdapter da = new SqlDataAdapter(cmd);
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-
-                    return dt;
-                }
+                // Nếu GUI truyền mã sai, BLL chặn ngay và trả về bảng rỗng
+                return new DataTable();
             }
+
+            DataTable dt = _doctorDal.LayDuLieuInPhieu(maLK);
+
+            if (dt == null)
+            {
+                return new DataTable();
+            }
+
+            return dt;
         }
     }
 }
