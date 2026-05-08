@@ -8,7 +8,7 @@ namespace ClinicApp.DAL
     public class DoctorDAL
     {
         private readonly string connStr =
-            ConfigurationManager.ConnectionStrings["conn"].ConnectionString;
+            ConfigurationManager.ConnectionStrings["ClinicAppDB"].ConnectionString;
 
         // 1. HÀNG ĐỢI ĐANG CHỜ (CHỈ DangCho)
         public DataTable LayHangDoiDangCho()
