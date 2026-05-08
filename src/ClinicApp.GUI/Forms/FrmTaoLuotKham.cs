@@ -30,6 +30,7 @@ public class FrmTaoLuotKham : Form
         UiTheme.ApplyForm(this);
         Text = "Đăng ký lượt khám";
         BuildLayout();
+        Load += (_, _) => SearchPatients(showEmptyMessage: false);
     }
 
     private void BuildLayout()
@@ -40,15 +41,25 @@ public class FrmTaoLuotKham : Form
         var searchCard = NativeUi.Card(DockStyle.Top, 74);
         page.Controls.Add(searchCard);
 
-        var toolbar = NativeUi.Toolbar();
+        var toolbar = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            Height = 38,
+            ColumnCount = 3,
+            BackColor = UiTheme.SurfaceContainerLowest
+        };
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 450));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 124));
         _txtSearch.Width = 440;
+        _txtSearch.Dock = DockStyle.Fill;
         _txtSearch.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter) SearchPatients(); };
         var btnSearch = NativeUi.PrimaryButton("Tìm kiếm");
-        btnSearch.Width = 120;
+        btnSearch.Dock = DockStyle.Fill;
         btnSearch.Click += (_, _) => SearchPatients();
-        toolbar.Controls.Add(NativeUi.FieldLabel("Tìm bệnh nhân"));
-        toolbar.Controls.Add(_txtSearch);
-        toolbar.Controls.Add(btnSearch);
+        toolbar.Controls.Add(NativeUi.FieldLabel("Tìm bệnh nhân"), 0, 0);
+        toolbar.Controls.Add(_txtSearch, 1, 0);
+        toolbar.Controls.Add(btnSearch, 2, 0);
         searchCard.Controls.Add(toolbar);
 
         var split = new SplitContainer
@@ -106,14 +117,14 @@ public class FrmTaoLuotKham : Form
         _gridQueue.DataSource = _localQueue;
     }
 
-    private void SearchPatients()
+    private void SearchPatients(bool showEmptyMessage = true)
     {
         try
         {
             DataTable table = _benhNhanBLL.TimBenhNhan(_txtSearch.Text);
             _gridPatients.DataSource = table;
             ConfigurePatientGrid();
-            if (table.Rows.Count == 0)
+            if (showEmptyMessage && table.Rows.Count == 0)
             {
                 NativeUi.ShowInfo("Không tìm thấy bệnh nhân nào.");
             }

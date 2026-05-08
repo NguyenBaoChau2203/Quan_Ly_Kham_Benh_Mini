@@ -244,8 +244,8 @@ public class FrmMain : Form
             "BenhNhan" => new FrmBenhNhan(),
             "TaoLuotKham" => new FrmTaoLuotKham(),
             "HangDoiKham" => CreateHangDoiKham(),
-            "KhamBenh" => param is int maLK ? new FrmKhamBenh(maLK, _currentUser.MaNV) : new FrmKhamBenh(0, _currentUser.MaNV),
-            "InPhieu" => new FrmInPhieu(),
+            "KhamBenh" => CreateKhamBenh(param),
+            "InPhieu" => CreateInPhieu(),
             "LichSu" => new FrmLichSu(),
             "Dashboard" => new FrmDashboard(),
             _ => throw new InvalidOperationException($"Unknown embeddable module: {moduleKey}")
@@ -263,6 +263,20 @@ public class FrmMain : Form
     {
         var frm = new FrmHangDoiKham(_currentUser);
         frm.ExamStarted += (_, e) => ShowModule("KhamBenh", e.MaLK);
+        return frm;
+    }
+
+    private FrmKhamBenh CreateKhamBenh(object? param)
+    {
+        var frm = param is int maLK ? new FrmKhamBenh(maLK, _currentUser.MaNV) : new FrmKhamBenh(0, _currentUser.MaNV);
+        frm.BackRequested += (_, _) => ShowModule("HangDoiKham");
+        return frm;
+    }
+
+    private FrmInPhieu CreateInPhieu()
+    {
+        var frm = new FrmInPhieu();
+        frm.CloseRequested += (_, _) => ShowModule("Dashboard");
         return frm;
     }
 

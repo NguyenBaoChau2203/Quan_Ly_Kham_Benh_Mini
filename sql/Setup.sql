@@ -77,6 +77,15 @@ CREATE TABLE BoDemSoThuTu (
 );
 GO
 
+CREATE UNIQUE INDEX UX_BenhNhan_SDT
+ON BenhNhan(SDT);
+GO
+
+CREATE UNIQUE INDEX UX_BenhNhan_CCCD_NotNull
+ON BenhNhan(CCCD)
+WHERE CCCD IS NOT NULL;
+GO
+
 -- 3. Stored Procedures
 -- =============================================
 

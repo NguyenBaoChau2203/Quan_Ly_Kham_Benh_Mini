@@ -21,6 +21,7 @@ public class BenhNhanBLL
     public bool ThemBenhNhan(BenhNhanDTO bn)
     {
         if (!IsValidBenhNhan(bn)) return false;
+        if (_benhNhanDAL.TonTaiSDT(bn.SDT)) return false;
         if (!string.IsNullOrWhiteSpace(bn.CCCD) && _benhNhanDAL.TonTaiCCCD(bn.CCCD)) return false;
         return _benhNhanDAL.ThemBenhNhan(bn);
     }
@@ -28,6 +29,7 @@ public class BenhNhanBLL
     public bool CapNhatBenhNhan(BenhNhanDTO bn)
     {
         if (bn.MaBN <= 0 || !IsValidBenhNhan(bn)) return false;
+        if (_benhNhanDAL.TonTaiSDT(bn.SDT, bn.MaBN)) return false;
         if (!string.IsNullOrWhiteSpace(bn.CCCD) && _benhNhanDAL.TonTaiCCCD(bn.CCCD, bn.MaBN)) return false;
         return _benhNhanDAL.CapNhatBenhNhan(bn);
     }

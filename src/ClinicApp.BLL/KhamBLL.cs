@@ -37,4 +37,9 @@ public class KhamBLL
     {
         return maLK <= 0 ? new DataTable() : _khamDAL.LayDuLieuInPhieu(maLK);
     }
+
+    public DataTable LayDanhSachDaKham()
+    {
+        return _khamDAL.LayDanhSachDaKham();
+    }
 }

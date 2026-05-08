@@ -8,7 +8,7 @@ public class FrmLichSu : Form
     private readonly ThongKeBLL _thongKeBLL = new();
     private readonly DateTimePicker _dtpFrom = new();
     private readonly DateTimePicker _dtpTo = new();
-    private readonly TextBox _txtKeyword = NativeUi.TextBox("Mã BN, tên, SĐT hoặc CCCD...");
+    private readonly TextBox _txtKeyword = NativeUi.TextBox("Mã BN, họ tên, SĐT hoặc CCCD...");
     private readonly DataGridView _grid = NativeUi.Grid();
     private readonly Label _lblSummary = new()
     {
@@ -42,23 +42,41 @@ public class FrmLichSu : Form
 
         UiTheme.ApplyDateTimePicker(_dtpFrom);
         UiTheme.ApplyDateTimePicker(_dtpTo);
-        _dtpFrom.Width = 130;
-        _dtpTo.Width = 130;
+        _dtpFrom.Format = DateTimePickerFormat.Custom;
+        _dtpFrom.CustomFormat = "dd/MM/yyyy";
+        _dtpTo.Format = DateTimePickerFormat.Custom;
+        _dtpTo.CustomFormat = "dd/MM/yyyy";
+        _dtpFrom.Width = 118;
+        _dtpTo.Width = 118;
         _txtKeyword.Width = 300;
+        _txtKeyword.Dock = DockStyle.Fill;
         _txtKeyword.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter) LoadData(); };
 
-        var toolbar = NativeUi.Toolbar();
-        toolbar.Controls.Add(NativeUi.FieldLabel("Từ ngày"));
-        toolbar.Controls.Add(_dtpFrom);
-        toolbar.Controls.Add(NativeUi.FieldLabel("Đến ngày"));
-        toolbar.Controls.Add(_dtpTo);
-        toolbar.Controls.Add(NativeUi.FieldLabel("Tìm kiếm"));
-        toolbar.Controls.Add(_txtKeyword);
+        var toolbar = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            Height = 38,
+            ColumnCount = 7,
+            BackColor = UiTheme.SurfaceContainerLowest
+        };
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 76));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 126));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 76));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 126));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 84));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 310));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 126));
+        toolbar.Controls.Add(NativeUi.FieldLabel("Từ ngày"), 0, 0);
+        toolbar.Controls.Add(_dtpFrom, 1, 0);
+        toolbar.Controls.Add(NativeUi.FieldLabel("Đến ngày"), 2, 0);
+        toolbar.Controls.Add(_dtpTo, 3, 0);
+        toolbar.Controls.Add(NativeUi.FieldLabel("Tìm kiếm"), 4, 0);
+        toolbar.Controls.Add(_txtKeyword, 5, 0);
 
         var btnFilter = NativeUi.PrimaryButton("Lọc dữ liệu");
-        btnFilter.Width = 120;
+        btnFilter.Dock = DockStyle.Fill;
         btnFilter.Click += (_, _) => LoadData();
-        toolbar.Controls.Add(btnFilter);
+        toolbar.Controls.Add(btnFilter, 6, 0);
         filter.Controls.Add(toolbar);
 
         var gridCard = NativeUi.Card(DockStyle.Fill);

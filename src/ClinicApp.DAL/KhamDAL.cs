@@ -104,4 +104,25 @@ WHERE lk.MaLK = @MaLK;";
 
         return DataProvider.Instance.ExecuteQuery(query, parameters);
     }
+
+    public DataTable LayDanhSachDaKham()
+    {
+        const string query = @"
+SELECT
+    lk.MaLK,
+    lk.SoThuTu,
+    lk.NgayKham,
+    lk.MaBN,
+    bn.HoTen,
+    ISNULL(nv.HoTen, N'') AS TenBacSi,
+    ISNULL(ct.ChanDoan, N'') AS ChanDoan
+FROM LuotKham lk
+INNER JOIN BenhNhan bn ON lk.MaBN = bn.MaBN
+LEFT JOIN NhanVien nv ON lk.MaBacSi = nv.MaNV
+LEFT JOIN ChiTietKham ct ON lk.MaLK = ct.MaLK
+WHERE lk.TrangThai = 'DaKham'
+ORDER BY lk.NgayKham DESC, lk.MaLK DESC;";
+
+        return DataProvider.Instance.ExecuteQuery(query);
+    }
 }

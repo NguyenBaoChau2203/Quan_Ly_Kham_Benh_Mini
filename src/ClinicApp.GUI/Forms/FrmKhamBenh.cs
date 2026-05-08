@@ -45,6 +45,7 @@ public class FrmKhamBenh : Form
     };
 
     private bool _isSaved;
+    public event EventHandler? BackRequested;
 
     public FrmKhamBenh() : this(null, null, null) { }
     public FrmKhamBenh(int maLK) : this(maLK, null, null) { }
@@ -143,7 +144,17 @@ public class FrmKhamBenh : Form
         var btnBack = NativeUi.SecondaryButton("Quay lại");
         btnBack.Dock = DockStyle.Right;
         btnBack.Width = 110;
-        btnBack.Click += (_, _) => Close();
+        btnBack.Click += (_, _) =>
+        {
+            if (BackRequested is not null)
+            {
+                BackRequested.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                Close();
+            }
+        };
 
         _btnSave.Dock = DockStyle.Right;
         _btnSave.Width = 150;

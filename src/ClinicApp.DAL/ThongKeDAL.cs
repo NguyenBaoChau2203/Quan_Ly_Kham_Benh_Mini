@@ -23,10 +23,19 @@ LEFT JOIN ChiTietKham ct ON lk.MaLK = ct.MaLK
 WHERE lk.NgayKhamDate >= @FromDate
   AND lk.NgayKhamDate <= @ToDate
   AND (@Keyword IS NULL
-       OR bn.HoTen LIKE N'%' + @Keyword + N'%'
-       OR bn.SDT LIKE '%' + @Keyword + '%'
-       OR bn.CCCD LIKE '%' + @Keyword + '%')
+       OR (@UseExactMaBN = 1 AND lk.MaBN = @KeywordMaBN)
+       OR (@UseExactMaBN = 0 AND (
+            bn.HoTen LIKE N'%' + @Keyword + N'%'
+            OR bn.SDT LIKE '%' + @Keyword + '%'
+            OR bn.CCCD LIKE '%' + @Keyword + '%'
+       )))
 ORDER BY lk.NgayKham DESC, lk.MaLK DESC;";
+
+        string? trimmedKeyword = string.IsNullOrWhiteSpace(keyword) ? null : keyword.Trim();
+        int keywordMaBN = 0;
+        bool useExactMaBN = trimmedKeyword != null
+            && trimmedKeyword.Length <= 5
+            && int.TryParse(trimmedKeyword, out keywordMaBN);
 
         var parameters = new[]
         {
@@ -34,8 +43,10 @@ ORDER BY lk.NgayKham DESC, lk.MaLK DESC;";
             new SqlParameter("@ToDate", SqlDbType.Date) { Value = toDate.Date },
             new SqlParameter("@Keyword", SqlDbType.NVarChar, 200)
             {
-                Value = string.IsNullOrWhiteSpace(keyword) ? DBNull.Value : keyword.Trim()
-            }
+                Value = (object?)trimmedKeyword ?? DBNull.Value
+            },
+            new SqlParameter("@KeywordMaBN", SqlDbType.Int) { Value = useExactMaBN ? keywordMaBN : DBNull.Value },
+            new SqlParameter("@UseExactMaBN", SqlDbType.Bit) { Value = useExactMaBN }
         };
 
         return DataProvider.Instance.ExecuteQuery(query, parameters);

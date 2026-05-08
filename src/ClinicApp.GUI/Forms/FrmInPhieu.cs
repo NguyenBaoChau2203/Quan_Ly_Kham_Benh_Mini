@@ -19,8 +19,10 @@ public class FrmInPhieu : Form
         Font = new Font("Consolas", 10F),
         WordWrap = true
     };
+    private readonly DataGridView _gridCompleted = NativeUi.Grid();
     private readonly Button _btnPrint = NativeUi.PrimaryButton("In phiếu");
     private string _printText = "";
+    public event EventHandler? CloseRequested;
 
     public FrmInPhieu() : this((int?)null) { }
     public FrmInPhieu(int maLK) : this((int?)maLK) { }
@@ -42,7 +44,7 @@ public class FrmInPhieu : Form
             }
             else
             {
-                _preview.Text = "Nhập mã lượt khám để xem nội dung phiếu.";
+                _preview.Text = "Nhập mã lượt khám rồi bấm Tải phiếu để xem nội dung.";
                 _btnPrint.Enabled = false;
             }
         };
@@ -58,6 +60,7 @@ public class FrmInPhieu : Form
 
         var flow = NativeUi.Toolbar();
         flow.Controls.Add(NativeUi.FieldLabel("Mã lượt khám"));
+        _numMaLK.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter) LoadSlip(); };
         flow.Controls.Add(_numMaLK);
 
         var btnLoad = NativeUi.SecondaryButton("Tải phiếu");
@@ -65,13 +68,28 @@ public class FrmInPhieu : Form
         btnLoad.Click += (_, _) => LoadSlip();
         flow.Controls.Add(btnLoad);
 
+        var btnCompleted = NativeUi.SecondaryButton("DS đã khám");
+        btnCompleted.Width = 120;
+        btnCompleted.Click += (_, _) => LoadCompletedList();
+        flow.Controls.Add(btnCompleted);
+
         _btnPrint.Width = 100;
         _btnPrint.Click += (_, _) => PrintSlip();
         flow.Controls.Add(_btnPrint);
 
         var btnClose = NativeUi.SecondaryButton("Đóng");
         btnClose.Width = 90;
-        btnClose.Click += (_, _) => Close();
+        btnClose.Click += (_, _) =>
+        {
+            if (CloseRequested is not null)
+            {
+                CloseRequested.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                Close();
+            }
+        };
         flow.Controls.Add(btnClose);
         toolbar.Controls.Add(flow);
 
@@ -92,6 +110,9 @@ public class FrmInPhieu : Form
             Padding = new Padding(28)
         };
         paperOuter.Controls.Add(paper);
+        _gridCompleted.Visible = false;
+        _gridCompleted.CellDoubleClick += (_, _) => LoadSlipFromSelectedRow();
+        paper.Controls.Add(_gridCompleted);
         paper.Controls.Add(_preview);
     }
 
@@ -110,6 +131,9 @@ public class FrmInPhieu : Form
 
             _printText = BuildSlipText(table.Rows[0]);
             _preview.Text = _printText;
+            _gridCompleted.Visible = false;
+            _preview.Visible = true;
+            _preview.BringToFront();
             _btnPrint.Enabled = true;
         }
         catch (Exception ex)
@@ -175,5 +199,57 @@ public class FrmInPhieu : Form
         {
             document.Print();
         }
+    }
+
+    private void LoadCompletedList()
+    {
+        try
+        {
+            DataTable table = _khamBLL.LayDanhSachDaKham();
+            _gridCompleted.DataSource = table;
+            ConfigureCompletedGrid();
+            _preview.Visible = false;
+            _gridCompleted.Visible = true;
+            _gridCompleted.BringToFront();
+            _btnPrint.Enabled = false;
+            _printText = "";
+
+            if (table.Rows.Count == 0)
+            {
+                NativeUi.ShowInfo("Chưa có lượt khám nào đã hoàn tất.");
+            }
+        }
+        catch (Exception ex)
+        {
+            NativeUi.ShowError("Không tải được danh sách đã khám.\n" + ex.Message);
+        }
+    }
+
+    private void LoadSlipFromSelectedRow()
+    {
+        if (_gridCompleted.CurrentRow?.DataBoundItem is not DataRowView view) return;
+        int maLK = NativeUi.IntOf(view.Row, "MaLK");
+        if (maLK <= 0) return;
+
+        _numMaLK.Value = maLK;
+        LoadSlip();
+    }
+
+    private void ConfigureCompletedGrid()
+    {
+        Header("MaLK", "Mã LK", 70);
+        Header("SoThuTu", "STT", 60);
+        Header("NgayKham", "Ngày khám", 150);
+        Header("MaBN", "Mã BN", 70);
+        Header("HoTen", "Họ tên", 190);
+        Header("TenBacSi", "Bác sĩ", 160);
+        Header("ChanDoan", "Chẩn đoán", 260);
+    }
+
+    private void Header(string name, string text, int width)
+    {
+        if (!_gridCompleted.Columns.Contains(name)) return;
+        _gridCompleted.Columns[name].HeaderText = text;
+        _gridCompleted.Columns[name].Width = width;
     }
 }

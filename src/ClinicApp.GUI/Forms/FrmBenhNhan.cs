@@ -244,7 +244,7 @@ public class FrmBenhNhan : Form
 
         if (!ok)
         {
-            NativeUi.ShowError("Thao tác thất bại. Có thể CCCD bị trùng hoặc dữ liệu chưa hợp lệ.");
+            NativeUi.ShowError("Thao tác thất bại. Có thể SĐT/CCCD bị trùng hoặc dữ liệu chưa hợp lệ.");
             return;
         }
 
