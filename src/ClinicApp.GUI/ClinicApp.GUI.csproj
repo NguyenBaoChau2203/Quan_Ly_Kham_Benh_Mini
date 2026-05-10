@@ -5,6 +5,12 @@
     <ProjectReference Include="..\ClinicApp.BLL\ClinicApp.BLL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Assets\LoginBackground.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <!-- System.Configuration.ConfigurationManager is inbox for net10.0-windows WinForms -->
 
   <PropertyGroup>

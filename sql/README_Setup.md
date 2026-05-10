@@ -63,6 +63,7 @@ Nếu môi trường không hỗ trợ Windows Authentication (Trusted_Connectio
 3. Sửa chuỗi kết nối trong `App.config` thành:
 ```xml
 <add name="ClinicAppDB"
+
      connectionString="Server=.;Database=ClinicAppDB;User Id=sa;Password=YourPassword123;TrustServerCertificate=True;"
      providerName="Microsoft.Data.SqlClient" />
 ```
