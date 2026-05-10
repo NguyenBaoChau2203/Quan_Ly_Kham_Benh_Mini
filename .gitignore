@@ -36,3 +36,9 @@ design/**/node_modules/
 .nuget-appdata/
 .nuget-localappdata/
 .nuget-packages/
+
+# Project specific
+ClinicApp.rar
+ClinicApp/
+MauBC_TieuLuan.doc
+publish/
