@@ -17,40 +17,67 @@ Hệ thống tuân thủ chặt chẽ mô hình kiến trúc **3-Layer Architect
 
 ```mermaid
 graph TD
-    subgraph Client Layer (GUI)
-        A[FrmMain / Shell] --> B[FrmLogin]
-        A --> C[FrmBenhNhan]
-        A --> D[FrmTaoLuotKham]
-        A --> E[FrmHangDoiKham]
-        A --> F[FrmKhamBenh]
-        A --> G[FrmInPhieu]
-        A --> H[FrmLichSu]
-        A --> I[FrmDashboard]
+    subgraph ClientLayer ["Client Layer (GUI)"]
+        A["FrmMain / Shell"]
+        B["FrmLogin"]
+        C["FrmBenhNhan"]
+        D["FrmTaoLuotKham"]
+        E["FrmHangDoiKham"]
+        F["FrmKhamBenh"]
+        G["FrmInPhieu"]
+        H["FrmLichSu"]
+        I["FrmDashboard"]
     end
 
-    subgraph Business Logic Layer (BLL)
-        J[AuthBLL]
-        K[BenhNhanBLL]
-        L[KhamBLL]
-        M[ThongKeBLL]
+    subgraph BusinessLogicLayer ["Business Logic Layer (BLL)"]
+        J["AuthBLL"]
+        K["BenhNhanBLL"]
+        L["KhamBLL"]
+        M["ThongKeBLL"]
     end
 
-    subgraph Data Access Layer (DAL)
-        N[AuthDAL]
-        O[BenhNhanDAL]
-        P[KhamDAL]
-        Q[ThongKeDAL]
-        R[DataProvider]
+    subgraph DataAccessLayer ["Data Access Layer (DAL)"]
+        N["AuthDAL"]
+        O["BenhNhanDAL"]
+        P["KhamDAL"]
+        Q["ThongKeDAL"]
+        R["DataProvider"]
     end
 
-    subgraph Database Layer
-        S[(SQL Server - ClinicAppDB)]
+    subgraph DatabaseLayer ["Database Layer"]
+        S[("SQL Server - ClinicAppDB")]
     end
 
-    Client Layer -.->|DTO / Contract| Business Logic Layer
-    Business Logic Layer --> Data Access Layer
-    DataAccess Layer --> S
-    R -->|SqlConnection / SqlCommand| S
+    %% UI Shell Navigation
+    A --> B
+    A --> C
+    A --> D
+    A --> E
+    A --> F
+    A --> G
+    A --> H
+    A --> I
+
+    %% 3-Layer Method Calls
+    B ==> J
+    C ==> K
+    D ==> K
+    E ==> L
+    F ==> L
+    H ==> M
+    I ==> M
+
+    J --> N
+    K --> O
+    L --> P
+    M --> Q
+
+    N --> R
+    O --> R
+    P --> R
+    Q --> R
+    
+    R ==>|Execute Query / SP| S
 ```
 
 ### Nguyên Tắc Thiết Kế Không Thể Thương Lượng (Non-Negotiable Rules)
